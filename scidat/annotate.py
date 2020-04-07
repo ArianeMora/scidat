@@ -51,14 +51,16 @@ class Annotate:
         self.clin_cols = clin_cols
         self.clin_df = None
         self.mutation_df = None
-        self.file_dict = None
+        self.annotated_file_dict = None
         self.sample_df = None
         self.sep = sep
+        self.case_to_mutation = None
+        self.case_to_file = None
 
     def run_setup(self) -> None:
         self.clin_df = self.setup_clin_df()
         self.sample_df = self.setup_sample_df()
-        self.file_dict, self.case_to_file = self.setup_file_dict()
+        self.annotated_file_dict, self.case_to_file = self.setup_file_dict()
         self.mutation_df, self.case_to_mutation = self.setup_mutation_df()
         self.update_clin_data()
 
@@ -134,9 +136,9 @@ class Annotate:
             c_files = []
             case = project_ids[i] + '_' + c
             for f in self.case_to_file[case]:
-                if self.file_dict[f]['sample_type'] == 'Solid Tissue Normal':
+                if self.annotated_file_dict[f]['sample_type'] == 'Solid Tissue Normal':
                     normal += 1
-                elif self.file_dict[f]['sample_type'] == 'Primary Tumor':
+                elif self.annotated_file_dict[f]['sample_type'] == 'Primary Tumor':
                     tumor += 1
                 c_files.append(f)
             normals.append(normal)
@@ -188,10 +190,10 @@ class Annotate:
             for f in value[0]:
                 i = 0
                 for c in annotation_cols:
-                    self.file_dict[f][c] = value[i]
+                    self.annotated_file_dict[f][c] = value[i]
                     i += 1
         # Now lets build our new column dictionary
-        for filename, meta in self.file_dict.items():
+        for filename, meta in self.annotated_file_dict.items():
             file_type = None
             for ft in self.file_types:
                 if ft in filename:
@@ -201,7 +203,7 @@ class Annotate:
                     f'{meta["race"]}{self.sep}{meta["tumor_stage_num"]}{self.sep}{file_type}' \
                     f'{self.sep}{meta["case_id"]}'
             # Remove any spaces from the label
-            self.file_dict[filename]['label'] = label.replace(' ', '')
+            self.annotated_file_dict[filename]['label'] = label.replace(' ', '')
 
     def save_annotated_clinical_df(self, dir_str: str, filename: str) -> None:
         if '.csv' not in filename:
@@ -213,7 +215,7 @@ class Annotate:
         first = True
         rows = []
 
-        for filename, meta in self.file_dict.items():
+        for filename, meta in self.annotated_file_dict.items():
             row = [filename]
             for m, v in meta.items():
                 if first:

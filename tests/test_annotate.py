@@ -15,6 +15,7 @@
 #                                                                             #
 ###############################################################################
 
+import os
 import shutil
 import tempfile
 import unittest
@@ -26,23 +27,34 @@ class TestAnnotate(unittest.TestCase):
 
     def setUp(self):
         # Setup temp dir
-        self.tmp_dir = tempfile.mkdtemp(prefix='scidatannotate_tmp_')
-        self.meta_dir = '/Users/ariane/Documents/code/tcga-format/tests/data/'
-        self.clinical_file = self.meta_dir + 'clinical.txt'
-        self.sample_file = self.meta_dir + 'sample_sheet.txt'
-        self.manifest_file = self.meta_dir + 'manifest.tsv'
-        self.mutations_file = None
+        self.local = True
+        if not self.local:
+            self.tmp_dir = tempfile.mkdtemp(prefix='scidatannotate_tmp_')
+        else:
+            self.tmp_dir = '../tests/data/'
+        meta_dir = '../tests/data/'
+        clinical_file = meta_dir + 'clinical.txt'
+        sample_file = meta_dir + 'sample_sheet.txt'
+        manifest_file = meta_dir + 'manifest.tsv'
+        mutations_file = None
 
         # (self, output_dir: str, clinical_file: str, sample_file: str, manifest_file: str, file_types: list,
         #                  sep='_', mutations_file=None, clin_cols=None
-        self.annotator = Annotate(self.tmp_dir, self.clinical_file, self.sample_file, self.manifest_file,
+        self.annotator = Annotate(self.tmp_dir, clinical_file, sample_file, manifest_file,
                                   ['count', 'm450'])
 
     def tearDown(self):
-        # Delete temp dr
-        shutil.rmtree(self.tmp_dir)
+        if not self.local:
+            # Delete temp dr
+            shutil.rmtree(self.tmp_dir)
 
     def test_annotate(self):
         self.annotator.build_annotation()
         # Now we want to check that the dataframe
-        self.annotator.save_annotation(self.meta_dir, 'out')
+        self.annotator.save_annotation(self.tmp_dir, 'out')
+
+        # Check file exists
+        self.assertEqual(os.path.exists(self.annotator.u.generate_label([self.tmp_dir, 'out'], '.csv')), True)
+
+        # Check our annotation has what we expect
+        print(self.annotator.annotated_file_dict)

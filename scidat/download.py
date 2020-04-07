@@ -14,7 +14,9 @@
 #    along with this program. If not, see <http://www.gnu.org/licenses/>.     #
 #                                                                             #
 ###############################################################################
+import gzip
 import os
+import shutil
 from subprocess import Popen
 
 from sciutil import *
@@ -42,11 +44,30 @@ class Download:
         self.max_cnt = max_cnt
         self.downloaded_files = []
 
-    @staticmethod
-    def check_dir_trailing_slash(dir_str: str) -> str:
-        if dir_str[-1] != '/':
-            return dir_str + '/'
-        return dir_str
+    def check_args(self) -> None:
+        """
+        Check that the directories supplied by the user are locations on their computer
+        Returns
+        -------
+
+        """
+
+        if not os.path.isdir(self.download_dir):
+            raise DownloadException(f'ARGPARSE ERR: download directory was not a directory: {self.download_dir}')
+
+        if not os.path.isfile(self.manifest_file):
+            raise DownloadException(f'ARGPARSE ERR: manifest file does not exist: {self.manifest_file}')
+
+        if not os.path.isfile(self.gdc_client):
+            raise DownloadException(f'ARGPARSE ERR: gdc-client file does not exist: {self.gdc_client}')
+
+        if not os.path.isdir(self.split_manifest_dir):
+            raise DownloadException(f'ARGPARSE ERR: the directory you selected to save your '
+                                    f'manifest files to was not a directory: {self.split_manifest_dir}')
+
+        # Now check they all have trailing slash for directories
+        self.download_dir = self.u.check_dir_format(self.download_dir)
+        self.split_manifest_dir = self.u.check_dir_format(self.split_manifest_dir)
 
     @staticmethod
     def write_file(filepath: str, lines: list) -> None:
@@ -57,10 +78,34 @@ class Download:
     @staticmethod
     def run_cmds(cmds: list) -> None:
         processes = [Popen(cmd, shell=True) for cmd in cmds]
-        for p in processes: p.wait()
+        for p in processes:
+            p.wait()
 
-    def copy_downloads_to_new_dir(self, new_dir):
-        return
+    def copy_downloads_to_new_dir(self, processed_dir):
+        files = os.listdir(self.download_dir)
+        count = 0
+        for f in files:
+            if os.path.isdir(self.download_dir + f):
+                try:
+                    # Get the downloaded folders
+                    folders = os.listdir(self.download_dir + f)
+                    file_idx = 0
+                    for df in folders:
+                        # TCGA also downloads log files we don't want to copy those across
+                        if 'log' not in df:
+                            file_idx += 1
+                            count += 1
+                            dir_str = self.u.check_dir_format(self.download_dir + f)
+                            if 'gz' in df:
+                                with gzip.open(dir_str + df, 'rb') as f_in:
+                                    with open(processed_dir + df[:-3] + '.tsv', 'wb') as f_out:
+                                        shutil.copyfileobj(f_in, f_out)
+                            else:
+                                # If it is a methylation file it isn't zipped so we just copy it across
+                                os.system('cp ' + dir_str + df + ' ' + processed_dir + df)
+
+                except Exception as e:
+                    self.u.warn_p(["Unable to process", f])
 
     def check_downloads(self, ouput_file=None) -> list:
         """
@@ -84,9 +129,10 @@ class Download:
         with open(self.manifest_file, 'r+') as f:
             first = True
             for line in f:
-                line = line.split('\t')
+                # Remove trailing new line character before splitting
+                line = line[:-1].split('\t')
                 if first:
-                    download_status.append(line + ['Download Status'])
+                    download_status.append(line + ['download_status'])
                     first = False
                 else:
                     file_id = line[0]
@@ -111,7 +157,7 @@ class Download:
 
     def download(self) -> None:
         cmds = []
-        manifest_filename = self.manifest_file.split('/')[-1]
+        manifest_filename = self.manifest_file.split(self.u.dir_sep)[-1]
         with open(self.manifest_file, 'r+') as f:
             hdr = None
             cnt = 0
