@@ -14,7 +14,7 @@
 #    along with this program. If not, see <http://www.gnu.org/licenses/>.     #
 #                                                                             #
 ###############################################################################
-import os
+
 import shutil
 import tempfile
 import unittest
@@ -25,24 +25,24 @@ from scidat import Annotate
 class TestAnnotate(unittest.TestCase):
 
     def setUp(self):
-        self.dir_tmp = tempfile.mkdtemp(prefix='scidatannotate_tmp_')
-        self.meta_dir = '/Users/ariane/Documents/vae_paper/data/rcc/raw/meta_tcga_kirp-kirc/'
-        self.processed_dir = '/Users/ariane/Documents/vae_paper/data/rcc/processed/tcga_kirp-kirc/'
-        self.sci_dir = '/Users/ariane/Documents/vae_paper/data/rcc/processed/scigacrux/'
-
-        self.clinical_file = self.meta_dir + 'clinical.cart.2020-03-11/clinical.tsv'
-        self.sample_file = self.meta_dir + 'gdc_sample_sheet.2020-03-11.tsv'
-        self.manifest_file = self.meta_dir + 'gdc_manifest_20200311_043417.txt'
-        self.mutations_file = self.meta_dir + 'mutations_20200311.tsv'
+        # Setup temp dir
+        self.tmp_dir = tempfile.mkdtemp(prefix='scidatannotate_tmp_')
+        self.meta_dir = '/Users/ariane/Documents/code/tcga-format/tests/data/'
+        self.clinical_file = self.meta_dir + 'clinical.txt'
+        self.sample_file = self.meta_dir + 'sample_sheet.txt'
+        self.manifest_file = self.meta_dir + 'manifest.tsv'
+        self.mutations_file = None
 
         # (self, output_dir: str, clinical_file: str, sample_file: str, manifest_file: str, file_types: list,
         #                  sep='_', mutations_file=None, clin_cols=None
-        self.annotator = Annotate(self.dir_tmp, self.clinical_file, self.sample_file, self.manifest_file,
+        self.annotator = Annotate(self.tmp_dir, self.clinical_file, self.sample_file, self.manifest_file,
                                   ['count', 'm450'])
 
     def tearDown(self):
-        shutil.rmtree(self.dir_tmp)
+        # Delete temp dr
+        shutil.rmtree(self.tmp_dir)
 
     def test_annotate(self):
         self.annotator.build_annotation()
         # Now we want to check that the dataframe
+        self.annotator.save_annotation(self.meta_dir, 'out')

@@ -16,7 +16,7 @@
 ###############################################################################
 
 from collections import defaultdict
-import os
+
 import pandas as pd
 from typing import Tuple
 from sciutil import *
@@ -36,8 +36,9 @@ class AnnotateException(SciException):
 class Annotate:
 
     def __init__(self, output_dir: str, clinical_file: str, sample_file: str, manifest_file: str, file_types: list,
-                 sep='_', mutations_file=None, clin_cols=None):
-        self.u = SciUtil()
+                 sep='_', mutations_file=None, clin_cols=None, sciutil=None):
+
+        self.u = SciUtil() if not sciutil else sciutil
         self.output_dir = output_dir
         self.clinical_file = clinical_file
         self.sample_file = sample_file
@@ -46,7 +47,7 @@ class Annotate:
         self.file_types = file_types
         if clin_cols is None:
             clin_cols = ['submitter_id', 'project_id', 'age_at_index', 'gender', 'race', 'vital_status', 'tumor_stage']
-        self.annotation_cols = ['case_files', 'tumor_stage_num', 'mutations', 'race', 'gender', 'project_id']
+        self.annotation_cols = ['case_files', 'tumor_stage_num', 'race', 'gender', 'project_id']
         self.clin_cols = clin_cols
         self.clin_df = None
         self.mutation_df = None
@@ -120,7 +121,7 @@ class Annotate:
         return pd.DataFrame(), {}
 
     def update_clin_data(self) -> None:
-        normals, tumors, mutations, case_files = []
+        normals, tumors, mutations, case_files = [], [], [], []
         project_ids = self.clin_df['project_id'].values
 
         # Now lets iterate through out clinical data
@@ -195,8 +196,9 @@ class Annotate:
             for ft in self.file_types:
                 if ft in filename:
                     file_type = ft
+            # ToDo: Update this --> won't work with user specified annotation columns
             label = f'{meta["project_id"]}{self.sep}{meta["sample_type"]}{self.sep}{meta["gender"]}{self.sep}' \
-                    f'{meta["race"]}{self.sep}{meta["stage"]}{self.sep}{meta["mutation"]}{self.sep}{file_type}' \
+                    f'{meta["race"]}{self.sep}{meta["tumor_stage_num"]}{self.sep}{file_type}' \
                     f'{self.sep}{meta["case_id"]}'
             # Remove any spaces from the label
             self.file_dict[filename]['label'] = label.replace(' ', '')
@@ -206,7 +208,7 @@ class Annotate:
             filename += '.csv'
         self.u.save_df(self.clin_df, self.u.generate_label([dir_str, filename]))
 
-    def save_annotation(self, dir_str: str, filename: str, sep=',') -> None:
+    def save_annotation(self, dir_str: str, filename_str: str, sep='\t', list_sep=',') -> None:
         hdr = ['filename']
         first = True
         rows = []
@@ -216,12 +218,16 @@ class Annotate:
             for m, v in meta.items():
                 if first:
                     hdr.append(str(m))
-                row.append(str(v))
+                if isinstance(v, list):
+                    row.append(list_sep.join([str(i) for i in v]))
+                else:
+                    row.append(str(v))
             rows.append(row)
+            first = False
 
-        with open(self.u.generate_label([dir_str, filename]), 'w+') as f:
-            f.write(sep.join(hdr))
+        with open(self.u.generate_label([dir_str, filename_str], '.csv'), 'w+') as f:
+            f.write(sep.join(hdr) + '\n')
             for row in rows:
-                f.write(sep.join(row))
+                f.write(sep.join(row) + '\n')
 
-        self.u.dp(["Saved annotation file to: ", filename])
+        self.u.dp(["Saved annotation file to: ", filename_str])
