@@ -31,7 +31,7 @@ class TestAnnotate(unittest.TestCase):
         if not self.local:
             self.tmp_dir = tempfile.mkdtemp(prefix='scidatannotate_tmp_')
         else:
-            self.tmp_dir = '../tests/data/'
+            self.tmp_dir = '../tests/data/tmp/'
         meta_dir = '../tests/data/'
         clinical_file = meta_dir + 'clinical.txt'
         sample_file = meta_dir + 'sample_sheet.txt'
@@ -49,7 +49,9 @@ class TestAnnotate(unittest.TestCase):
             shutil.rmtree(self.tmp_dir)
 
     def test_annotate(self):
+
         self.annotator.build_annotation()
+
         # Now we want to check that the dataframe
         self.annotator.save_annotation(self.tmp_dir, 'out')
 

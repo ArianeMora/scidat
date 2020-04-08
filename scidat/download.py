@@ -16,6 +16,7 @@
 ###############################################################################
 import gzip
 import os
+import pandas as pd
 import shutil
 from subprocess import Popen
 
@@ -68,6 +69,77 @@ class Download:
         # Now check they all have trailing slash for directories
         self.download_dir = self.u.check_dir_format(self.download_dir)
         self.split_manifest_dir = self.u.check_dir_format(self.split_manifest_dir)
+
+    def download_data_using_api(self, case_ids: list, data_type: str) -> None:
+        """
+        Download data using the API from TCGA: refer to \
+        https://docs.gdc.cancer.gov/API/Users_Guide/Data_Analysis/#simple-somatic-mutation-endpoint-examples
+
+        Parameters
+        ----------
+        case_ids
+        data_type
+
+        Returns
+        -------
+
+        """
+        cmds = []
+        files = []
+        for case_id in case_ids:
+            if data_type == 'mutation':
+                file_name = self.u.generate_label([self.download_dir, data_type, case_id], '.tsv')
+                cmds.append(self.gen_mutation_api_str(
+                    case_id, file_name))
+                files.append(file_name)
+
+        self.run_cmds(cmds)
+
+        if data_type == 'mutation':
+            self.format_mutation_files(files)
+
+    def format_mutation_files(self, files: list) -> None:
+        # Since the files are very ugly by default, we want to only keep some cols
+        cols_to_keep = ['ssm.ssm_id', 'ssm.genomic_dna_change', 'ssm.mutation_subtype',
+                        'ssm.consequence.0.transcript.gene.symbol', 'ssm.consequence.0.transcript.gene.gene_id']
+
+        # We also want to provide the user with a summary of the cases that had mutations and which didn't
+        cases_without_mutations = []
+        for f in files:
+            try:
+                df = pd.read_csv(f, sep='\t')
+                # If it is non empty we will keep it otherwise delete the file
+                df = df[cols_to_keep]
+                self.u.save_df(df, f)
+            except Exception as e:
+                # Delete the file ToDo: Generalise the split
+                cases_without_mutations.append(f.split('_')[-2])
+                os.remove(f)
+
+        self.u.dp(["Num cases with mutations: ", len(files) - len(cases_without_mutations),
+                   "\nNum cases without mutations: ", len(cases_without_mutations), "\n\nCases: \n",
+                   '\n'.join(cases_without_mutations)])
+
+    @staticmethod
+    def gen_mutation_api_str(case_id: str, output_file: str) -> str:
+        """
+        Copied the string from the TCGA website and updated the case_id
+        See simple somatic mutations
+        https://docs.gdc.cancer.gov/API/Users_Guide/Data_Analysis/#simple-somatic-mutation-endpoint-examples
+        Parameters
+        ----------
+        case_id
+        output_file
+
+        Returns
+        -------
+
+        """
+        return f'curl "https://api.gdc.cancer.gov/ssm_occurrences?format=tsv&fields=ssm.ssm_id,ssm.genomic_dna_change,' \
+              f'ssm.mutation_subtype,ssm.consequence.transcript.gene.gene_id,ssm.consequence.transcript.gene.symbol&' \
+              f'size=5000&filters=%7B%0D%0A%22op%22%3A%22in%22%2C%0D%0A%22content%22%3A%7B%0D%0A%22field%22%3A%22' \
+              f'case.submitter_id%22%2C%0D%0A%22value%22%3A%5B%0D%0A%22{case_id}%22%0D%0A%5D%0D%0A%7D%0D%0A%7D" ' \
+              f'> {output_file}'
 
     @staticmethod
     def write_file(filepath: str, lines: list) -> None:

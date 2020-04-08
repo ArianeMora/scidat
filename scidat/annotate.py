@@ -15,6 +15,7 @@
 #                                                                             #
 ###############################################################################
 
+# https://docs.gdc.cancer.gov/API/Users_Guide/Data_Analysis/
 from collections import defaultdict
 
 import pandas as pd
@@ -36,14 +37,13 @@ class AnnotateException(SciException):
 class Annotate:
 
     def __init__(self, output_dir: str, clinical_file: str, sample_file: str, manifest_file: str, file_types: list,
-                 sep='_', mutations_file=None, clin_cols=None, sciutil=None):
+                 sep='_', clin_cols=None, sciutil=None):
 
         self.u = SciUtil() if not sciutil else sciutil
         self.output_dir = output_dir
         self.clinical_file = clinical_file
         self.sample_file = sample_file
         self.manifest_file = manifest_file
-        self.mutations_file = mutations_file
         self.file_types = file_types
         if clin_cols is None:
             clin_cols = ['submitter_id', 'project_id', 'age_at_index', 'gender', 'race', 'vital_status', 'tumor_stage']
@@ -101,36 +101,17 @@ class Annotate:
             i += 1
         return file_dict, case_to_file
 
-    def setup_mutation_df(self) -> Tuple[pd.DataFrame, defaultdict]:
-        # Check if we also have mutation data
-        if self.mutations_file:
-            mutation_df = pd.read_csv(self.mutations_file, sep='\t')
-            self.u.dp(["Muttaion dataframe"])
-            self.u.dp([mutation_df.head()])
-
-            case_to_mutation = defaultdict(list)
-            mutations = mutation_df['Consequences'].values
-            i = 0
-            for cases in mutation_df['Cases'].values:
-                cases = cases.split(',')
-                mutation = mutations[i]
-                for c in cases:
-                    case_to_mutation[c].append(mutation)
-                i += 1
-            return mutation_df, case_to_mutation
-
-        # Otherwise return an empty dataframe
-        return pd.DataFrame(), {}
+    def setup_mutation_df(self):
+        return
 
     def update_clin_data(self) -> None:
-        normals, tumors, mutations, case_files = [], [], [], []
+        normals, tumors, case_files = [], [], []
         project_ids = self.clin_df['project_id'].values
 
         # Now lets iterate through out clinical data
         i = 0
         for c in self.clin_df['submitter_id'].values:
             # Lets now add the new information
-            mutations.append(self.case_to_mutation.get(c))
             tumor = 0
             normal = 0
             c_files = []
@@ -148,20 +129,7 @@ class Annotate:
         self.clin_df['normal_samples'] = normals
         self.clin_df['tumor_samples'] = tumors
         self.clin_df['case_files'] = case_files
-        # Check if we even have mutations
-        if len(self.mutation_df.values) > 1:
-            self.clin_df['mutations'] = mutations
-            # Update our mutations to only keep the first element (otherwise it is too specific)
-            # maybe later on we'll change this
-            # ToDo: Potential user selection here
-            mutations = []
-            for m in self.clin_df['mutations']:
-                if m is not None:
-                    mutations.append(m[0])
-                else:
-                    mutations.append(None)
 
-            self.clin_df['mutations'] = mutations
         # Lastly we want to convert our tumor stage into a numeric value (i.e. 1-4 instead of a string)
         stages = []
         for stage in self.clin_df['tumor_stage'].values:
@@ -180,7 +148,7 @@ class Annotate:
         self.run_setup()
         # Assign each of our files with a meaningful name based on the meta data.
         # Lets now go through the cases and assign these files with meaningful names
-        # The naming format is: tumor-type_gender_race_mutation_stage
+        # The naming format is: tumor-type_gender_race__stage
         if not annotation_cols:
             # use default columns
             annotation_cols = self.annotation_cols
@@ -233,3 +201,7 @@ class Annotate:
                 f.write(sep.join(row) + '\n')
 
         self.u.dp(["Saved annotation file to: ", filename_str])
+
+    def add_mutation_annotation(self, mutation_dir: str, data_df: pd.DataFrame, requires='') -> None:
+        # Read through the files in the mutation directory and add the mutation data to our clinical TSV
+        return None

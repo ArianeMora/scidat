@@ -28,21 +28,19 @@ class TestDownload(unittest.TestCase):
     def setUp(self):
         # Flag to set data to be local so we don't have to download them repeatedly. ToDo: Remove when publishing.
         self.local = True
-
-        self.tmp_dir = tempfile.mkdtemp(prefix='scidatannotate_tmp_')
+        if self.local:
+            self.tmp_dir = '../tests/data/tmp/'
+        else:
+            self.tmp_dir = tempfile.mkdtemp(prefix='scidatannotate_tmp_')
         self.data_dir = '../tests/data/'
         manifest_file = self.data_dir + 'manifest.tsv'
         gdc_client = self.data_dir + './gdc-client'
-        if self.local:
-            # manifest_file, split_manifest_dir, download_dir, gdc_client, max_cnt=100)
-            self.download = Download(manifest_file, self.data_dir, self.data_dir, gdc_client, max_cnt=1)
-        else:
-            self.download = Download(manifest_file, self.tmp_dir, self.tmp_dir, gdc_client, max_cnt=1)
-            self.data_dir = self.tmp_dir
+        self.download = Download(manifest_file, self.tmp_dir, self.tmp_dir, gdc_client, max_cnt=1)
 
     def tearDown(self):
-        # Delete temp dir
-        shutil.rmtree(self.tmp_dir)
+        if not self.local:
+            # Delete temp dir
+            shutil.rmtree(self.tmp_dir)
 
     def test_download(self):
         files_pre = os.listdir(self.tmp_dir)
@@ -72,17 +70,34 @@ class TestDownload(unittest.TestCase):
         self.assertEqual(os.path.exists(self.data_dir + 'download_status.csv'), True)
 
     def test_copy_downloads_to_new_dir(self):
-        files_pre = os.listdir(self.data_dir)
+        files_pre = os.listdir(self.tmp_dir)
 
         if not self.local:
             self.download.download()
 
-        self.download.copy_downloads_to_new_dir(self.data_dir)
+        self.download.copy_downloads_to_new_dir(self.tmp_dir)
 
-        files_post = os.listdir(self.data_dir)
+        files_post = os.listdir(self.tmp_dir)
 
         self.assertEqual(len(files_pre), len(files_post) - 2)
 
         assert 'jhu-usc.edu_KIRP.HumanMethylation450.15.lvl-3.TCGA-UZ-A9PS-05A-11D-A42K-05.gdc_hg38.txt' in files_post
         assert 'd3f73c0f-d518-4e91-b038-a4360495ee27.htseq.counts.tsv' in files_post
         assert 'd3f73c0f-d518-4e91-b038-a4360495ee27.htseq.counts.tsv' not in files_pre
+
+    def test_download_data_using_api(self):
+        # Here we want to download the mutation files
+        case_ids = ['TCGA-A3-3308', 'TCGA-KN-8422', 'TCGA-CZ-5989-11A', 'TCGA-A4-8312-01A']
+        self.download.download_data_using_api(case_ids, 'mutation')
+        labels = []
+        for c in case_ids:
+            labels.append(self.download.u.generate_label(['mutation', c], '.tsv'))
+        # Let's check if the files were downloaded
+        files = os.listdir(self.tmp_dir)
+        overlap = 0
+        print(labels, files)
+        for f in files:
+            if f in labels:
+                overlap += 1
+        # There should only be two files with mutation data
+        self.assertEqual(overlap, len(labels) - 2)
