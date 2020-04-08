@@ -1,0 +1,5 @@
+File ID	File Name	Data Category	Data Type	Project ID	Case ID	Sample ID	Sample Type
+001ae925-102c-4818-8eb0-c8d2e5726e7c	d3f73c0f-d518-4e91-b038-a4360495ee27.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRC	TCGA-A3-3308	TCGA-A3-3308-01A	Primary Tumor
+003a2cdd-1e48-480d-8e8f-fe0351ca8141	jhu-usc.edu_KICH.HumanMethylation450.1.lvl-3.TCGA-KN-8422-01A-11D-2312-05.gdc_hg38.txt	DNA Methylation	Methylation Beta Value	TCGA-KICH	TCGA-KN-8422	TCGA-KN-8422-01A	Primary Tumor
+0085c623-bcdd-4b71-960c-a42acd0e53e4	801c2c60-5dc2-43f7-949f-18b5a35a4ca3.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRC	TCGA-CZ-5989	TCGA-CZ-5989-11A	Solid Tissue Normal
+00d64ab2-4616-4f40-9c53-70b462b88c95	0e0cf108-f7ff-412b-8840-1dd1fce76d6b.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-A4-8312	TCGA-A4-8312-01A	Primary Tumor
