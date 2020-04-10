@@ -17,6 +17,7 @@
 import gzip
 import os
 import pandas as pd
+import numpy as np
 import shutil
 from subprocess import Popen
 
@@ -98,19 +99,71 @@ class Download:
         if data_type == 'mutation':
             self.format_mutation_files(files)
 
+    def add_mutation_values(self, label: str, df: pd.DataFrame):
+        """
+        Helper function for the elow function
+        Parameters
+        ----------
+        label
+        df
+
+        Returns
+        -------
+
+        """
+        cols = []
+        for c in df.columns:
+            if label in c:
+                cols.append(c)
+
+        values = df[cols].values
+        non_nans = []
+        non_nans_idx = []
+        for val_lst in values:
+            i = 0
+            non_nan_idxs = []
+            label_vals = []
+            for v in val_lst:
+                if isinstance(v, str):
+                    non_nan_idxs.append(str(i))
+                    label_vals.append(v)
+                i += 1
+            non_nans.append(','.join(label_vals))
+            non_nans_idx.append(','.join(non_nan_idxs))
+        return non_nans, non_nans_idx
+
     def format_mutation_files(self, files: list) -> None:
+        """
+        Document that we only keep amino acid changes when there is a ssm consequence documented.
+
+        Parameters
+        ----------
+        files
+
+        Returns
+        -------
+
+        """
         # Since the files are very ugly by default, we want to only keep some cols
-        cols_to_keep = ['ssm.ssm_id', 'ssm.genomic_dna_change', 'ssm.mutation_subtype',
-                        'ssm.consequence.0.transcript.gene.symbol', 'ssm.consequence.0.transcript.gene.gene_id']
+        cols_to_keep = ['ssm.ssm_id', 'ssm.consequence.0.transcript.gene.symbol',
+                        'ssm.consequence.0.transcript.gene.gene_id', 'ssm.genomic_dna_change', 'ssm.mutation_subtype']
+        transcript_cols = ['consequence_type', 'aa_change']
 
         # We also want to provide the user with a summary of the cases that had mutations and which didn't
         cases_without_mutations = []
+
+        # Since we potentially have multiple transcripts we need to combine the last two columns into a sting/
+        # separable list so that we can use it for downstream analyses.
         for f in files:
             try:
                 df = pd.read_csv(f, sep='\t')
+                formatted_df = df[cols_to_keep]
                 # If it is non empty we will keep it otherwise delete the file
-                df = df[cols_to_keep]
-                self.u.save_df(df, f)
+                for col in transcript_cols:
+                    formatted_df[col], formatted_df[col + '_transcript_idx'] = self.add_mutation_values(col, df)
+
+                self.u.save_df(formatted_df, f, sep='\t')
+
             except Exception as e:
                 # Delete the file ToDo: Generalise the split
                 cases_without_mutations.append(f.split('_')[-2])
@@ -136,10 +189,11 @@ class Download:
 
         """
         return f'curl "https://api.gdc.cancer.gov/ssm_occurrences?format=tsv&fields=ssm.ssm_id,ssm.genomic_dna_change,' \
-              f'ssm.mutation_subtype,ssm.consequence.transcript.gene.gene_id,ssm.consequence.transcript.gene.symbol&' \
-              f'size=5000&filters=%7B%0D%0A%22op%22%3A%22in%22%2C%0D%0A%22content%22%3A%7B%0D%0A%22field%22%3A%22' \
-              f'case.submitter_id%22%2C%0D%0A%22value%22%3A%5B%0D%0A%22{case_id}%22%0D%0A%5D%0D%0A%7D%0D%0A%7D" ' \
-              f'> {output_file}'
+               f'ssm.mutation_subtype,ssm.consequence.transcript.gene.gene_id,ssm.consequence.transcript.gene.symbol,' \
+               f'ssm.consequence.transcript.aa_change,ssm.consequence.transcript.consequence_type&' \
+               f'size=5000&filters=%7B%0D%0A%22op%22%3A%22in%22%2C%0D%0A%22content%22%3A%7B%0D%0A%22field%22%3A%22' \
+               f'case.submitter_id%22%2C%0D%0A%22value%22%3A%5B%0D%0A%22{case_id}%22%0D%0A%5D%0D%0A%7D%0D%0A%7D" ' \
+               f'> {output_file}'
 
     @staticmethod
     def write_file(filepath: str, lines: list) -> None:

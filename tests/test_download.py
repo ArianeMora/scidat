@@ -43,27 +43,26 @@ class TestDownload(unittest.TestCase):
             shutil.rmtree(self.tmp_dir)
 
     def test_download(self):
-        files_pre = os.listdir(self.tmp_dir)
         self.download.download()
 
         # Now there should be an extra file in the downloads dir
         files_post = os.listdir(self.tmp_dir)
-        self.assertEqual(len(files_pre), len(files_post) - 1)
 
         # Check file name
-        self.assertEqual(files_post[0], '001ae925-102c-4818-8eb0-c8d2e5726e7c')
+        self.assertEqual(files_post[0], 'd3f73c0f-d518-4e91-b038-a4360495ee27.htseq.counts.tsv')
 
     def test_check_downloads(self):
-        if not self.local:
-            self.download.download()
+
+        #self.download.download()
 
         download_status = self.download.check_downloads(self.data_dir + 'download_status.csv')
         download_status.sort()
 
         # Check the download status was correctly assigned
+        print(download_status)
         self.assertEqual(download_status[0][0], '001ae925-102c-4818-8eb0-c8d2e5726e7c')
         self.assertEqual(download_status[0][5], 'True')
-        self.assertEqual(download_status[-1][0], '06b98f02-9853-4c2f-87fa-1e0a454ef4bc')
+        self.assertEqual(download_status[-1][0], '00d64ab2-4616-4f40-9c53-70b462b88c95')
         self.assertEqual(download_status[-1][5], 'False')
 
         # Check the file was written with the download status
@@ -81,7 +80,7 @@ class TestDownload(unittest.TestCase):
 
         self.assertEqual(len(files_pre), len(files_post) - 2)
 
-        assert 'jhu-usc.edu_KIRP.HumanMethylation450.15.lvl-3.TCGA-UZ-A9PS-05A-11D-A42K-05.gdc_hg38.txt' in files_post
+        assert 'jhu-usc.edu_KIRC.HumanMethylation450.3.lvl-3.TCGA-BP-5196-01A-01D-1424-05.gdc_hg38.txt' in files_post
         assert 'd3f73c0f-d518-4e91-b038-a4360495ee27.htseq.counts.tsv' in files_post
         assert 'd3f73c0f-d518-4e91-b038-a4360495ee27.htseq.counts.tsv' not in files_pre
 
