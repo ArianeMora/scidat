@@ -87,6 +87,7 @@ class Download:
         """
         cmds = []
         files = []
+
         for case_id in case_ids:
             if data_type == 'mutation':
                 file_name = self.u.generate_label([self.download_dir, data_type, case_id], '.tsv')
@@ -97,7 +98,7 @@ class Download:
         self.run_cmds(cmds)
 
         if data_type == 'mutation':
-            self.format_mutation_files(files)
+            self.format_mutation_files(files, case_ids)
 
     def add_mutation_values(self, label: str, df: pd.DataFrame):
         """
@@ -132,7 +133,7 @@ class Download:
             non_nans_idx.append(','.join(non_nan_idxs))
         return non_nans, non_nans_idx
 
-    def format_mutation_files(self, files: list) -> None:
+    def format_mutation_files(self, files: list, case_ids: list) -> None:
         """
         Document that we only keep amino acid changes when there is a ssm consequence documented.
 
@@ -154,10 +155,14 @@ class Download:
 
         # Since we potentially have multiple transcripts we need to combine the last two columns into a sting/
         # separable list so that we can use it for downstream analyses.
+        file_idx = 0
         for f in files:
             try:
                 df = pd.read_csv(f, sep='\t')
-                formatted_df = df[cols_to_keep]
+                formatted_df = pd.DataFrame()
+                formatted_df['case_id'] = np.array([case_ids[file_idx] for _ in range(len(df))])
+                for c in cols_to_keep:
+                    formatted_df[c] = df[c].values
                 # If it is non empty we will keep it otherwise delete the file
                 for col in transcript_cols:
                     formatted_df[col], formatted_df[col + '_transcript_idx'] = self.add_mutation_values(col, df)
@@ -168,7 +173,7 @@ class Download:
                 # Delete the file ToDo: Generalise the split
                 cases_without_mutations.append(f.split('_')[-2])
                 os.remove(f)
-
+            file_idx += 1
         self.u.dp(["Num cases with mutations: ", len(files) - len(cases_without_mutations),
                    "\nNum cases without mutations: ", len(cases_without_mutations), "\n\nCases: \n",
                    '\n'.join(cases_without_mutations)])

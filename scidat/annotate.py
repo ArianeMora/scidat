@@ -17,6 +17,7 @@
 
 # https://docs.gdc.cancer.gov/API/Users_Guide/Data_Analysis/
 from collections import defaultdict
+import os
 
 import pandas as pd
 from typing import Tuple
@@ -101,8 +102,9 @@ class Annotate:
             i += 1
         return file_dict, case_to_file
 
-    def setup_mutation_df(self):
-        return
+    def setup_mutation_df(self, mutation_dir: str, mutation_file_prefix='mutation'):
+        files = os.listdir(mutation_dir)
+        df = pd.DataFrame()
 
     def update_clin_data(self) -> None:
         normals, tumors, case_files = [], [], []
@@ -202,6 +204,45 @@ class Annotate:
 
         self.u.dp(["Saved annotation file to: ", filename_str])
 
-    def add_mutation_annotation(self, mutation_dir: str, data_df: pd.DataFrame, requires='') -> None:
-        # Read through the files in the mutation directory and add the mutation data to our clinical TSV
-        return None
+    def build_mutation_df(self, mutation_dir: str, output_file=None, mutation_prefix='mutation', sep='\t',
+                          case_ids=None) -> None:
+        # Create a dataframe of all the mutation
+        files = os.listdir(mutation_dir)
+        mutation_files = []
+        for f in files:
+            if mutation_prefix in f:
+                if case_ids:
+                    for c in case_ids:
+                        if c in f:
+                            mutation_files.append(mutation_dir + f)
+                else:
+                    mutation_files.append(mutation_dir + f)
+        # Check there were any files
+        if len(mutation_files) < 1:
+            if case_ids:
+                self.u.err_p(["Error in build_mutation_df!\nYou had no files in: ", mutation_dir, "\nwith the prefix: "
+                             , mutation_prefix, "\nAnd case ids in: ", ','.join(case_ids),
+                              "\nPlease check this directory exists and you have downloaded the mutation data."])
+            else:
+                self.u.err_p(["Error in build_mutation_df!\nYou had no files in: ", mutation_dir, "\nwith the prefix: "
+                              , mutation_prefix, "\nPlease check this directory exists and you have downloaded "
+                              "the mutation data."])
+            return
+        # Now we want to go through each of the files and add it to a dataframe
+        dfs = []
+
+        for f in mutation_files[1:]:
+            dfs.append(pd.read_csv(f, sep=sep))
+        # Now we just concatenate them together
+        self.mutation_df = pd.concat(dfs)
+
+    # Getter functions
+    def get_cases(self):
+        return list(self.case_to_file.keys())
+
+    def get_mutation_df(self) -> pd.DataFrame:
+        if self.mutation_df is None:
+            self.u.warn_p(["No mutation dataframe built. Please run: \nbuild_mutation_df(self, mutation_dir: str, "
+                           "output_file=None, mutation_prefix='mutation', sep='\t', case_ids=None) -> None"])
+            return None
+        return self.mutation_df
