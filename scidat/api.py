@@ -14,11 +14,11 @@
 #    along with this program. If not, see <http://www.gnu.org/licenses/>.     #
 #                                                                             #
 ###############################################################################
-from scidat import message
 from sciutil import SciUtil
 from scidat import Download
 from scidat import Annotate
 
+from functools import reduce
 import time
 import pandas as pd
 import numpy as np
@@ -295,8 +295,17 @@ class API:
         """
         cases_lst = []
         for key, values in meta.items():
-            if
+            if not isinstance(values, list):
+                self.u.err_p([self.u.msg.msg_data_type("get_cases_with_meta", values, "list")])
+                return
             cases_lst.append(list(set(self.annotate.clin_df['submitter_id'][self.annotate.clin_df[key].isin(values)])))
+
+        if method == "all":
+            return list(reduce(set.intersection, [set(item) for item in cases_lst]))
+
+        elif method == "any":
+            # Otherwise just return all the cases that had any of those metadata
+            return list(set([item for sublist in cases_lst for item in sublist]))
 
     def get_merged_rna_meth_df(self, case_ids=None) -> pd.DataFrame:
         """
@@ -310,7 +319,7 @@ class API:
 
         """
         if self.rna_meth_df is None:
-            self.u.err_p([message.msg_data_gen("get_merged_rna_meth_df",
+            self.u.err_p([self.u.msg.msg_data_gen("get_merged_rna_meth_df",
                 "rna_meth_df", ["minify_meth_files", "build_meth_df", "build_rna_df", "merge_rna_meth_df"])])
             return
 
