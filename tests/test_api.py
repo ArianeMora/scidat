@@ -38,7 +38,6 @@ class TestAPI(unittest.TestCase):
         #                  max_cnt=100, sciutil=None, split_manifest_dir='.', download_dir='.', meta_dir='.', sep='_'):
 
         self.data_dir = '../tests/data/'
-        manifest_file = self.data_dir + 'manifest.tsv'
         gdc_client = self.data_dir + './gdc-client'
         meta_dir = '../tests/data/'
         clinical_file = meta_dir + 'clinical.txt'
@@ -79,8 +78,8 @@ class TestAPI(unittest.TestCase):
         self.api.build_annotation()
         self.api.build_rna_df()
         df = self.api.get_rna_df()
-        self.assertEqual("TCGA-KIRC_PrimaryTumor_male_asian_3_None_TCGA-KIRC_TCGA-A3-3308", df.columns[1])
-        self.assertEqual(df['TCGA-KIRC_PrimaryTumor_male_asian_3_None_TCGA-KIRC_TCGA-A3-3308'].values[3], 753)
+        self.assertEqual("TCGA-KIRC_PrimaryTumor_male_asian_3_counts_TCGA-KIRC_TCGA-A3-3308", df.columns[1])
+        self.assertEqual(df['TCGA-KIRC_PrimaryTumor_male_asian_3_counts_TCGA-KIRC_TCGA-A3-3308'].values[3], 753)
 
     def test_minify_meth_files(self):
         self.api.minify_meth_files(self.data_dir, self.tmp_dir)

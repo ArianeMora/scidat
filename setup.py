@@ -4,7 +4,7 @@ import re
 
 
 def read_version():
-    path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'sciutil/__init__.py')
+    path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'scidat/__init__.py')
     with open(path, 'r') as fh:
         return re.search(r'__version__\s?=\s?[\'"](.+)[\'"]', fh.read()).group(1)
 
@@ -43,7 +43,7 @@ setup(name='scidat',
       packages=['scidat'],
       entry_points={
           'console_scripts': [
-              'sciutil = scidat.__main__:main'
+              'scidat = scidat.__main__:main'
           ]
       },
       install_requires=['sciutil', 'pandas', 'numpy'],

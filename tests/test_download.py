@@ -27,7 +27,7 @@ class TestDownload(unittest.TestCase):
 
     def setUp(self):
         # Flag to set data to be local so we don't have to download them repeatedly. ToDo: Remove when publishing.
-        self.local = True
+        self.local = False
         if self.local:
             self.tmp_dir = '../tests/data/tmp/'
         else:
