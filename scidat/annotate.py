@@ -200,7 +200,11 @@ class Annotate:
 
     # Getter functions
     def get_cases(self):
-        return list(self.case_to_file.keys())
+        cases = list(self.case_to_file.keys())
+        case_ids = []
+        for c in cases:
+            case_ids.append(c.split('_')[-1])
+        return case_ids
 
     def get_mutation_df(self) -> pd.DataFrame:
         if self.mutation_df is None:

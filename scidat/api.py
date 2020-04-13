@@ -66,6 +66,10 @@ class API:
     def download_mutation_data(self, case_ids=None) -> None:
         # If there are no case ids then we'll download the mutation data for all cases in the annotation data.
         if not case_ids:
+            if self.annotate.annotated_file_dict is None:
+                msg = self.u.msg.msg_data_gen("download_mutation_data", "annotate.case_ids", ["build_annotation"])
+                self.u.err_p([msg])
+                raise APIException(msg)
             case_ids = case_ids if case_ids is not None else list(self.annotate.get_cases())
             self.u.warn_p(
                 ["Warning: you didn't provide any case ids. Are you sure you want to download all the cases?\n"

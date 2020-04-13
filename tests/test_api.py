@@ -59,6 +59,11 @@ class TestAPI(unittest.TestCase):
     def test_download_mutation_data(self):
         # Here we want to download the mutation files
         case_ids = ['TCGA-A3-3308', 'TCGA-KN-8422', 'TCGA-CZ-5989-11A', 'TCGA-A4-8312-01A']
+        with self.assertRaises(APIException):
+            self.api.download_mutation_data()
+
+        # Now we want to first build the annotation
+        self.api.build_annotation()
         self.api.download_mutation_data(case_ids)
 
         labels = []
@@ -73,6 +78,8 @@ class TestAPI(unittest.TestCase):
                 overlap += 1
         # There should only be two files with mutation data
         self.assertEqual(overlap, len(labels) - 2)
+
+        # self.api.download_mutation_data()
 
     def test_build_rna_df(self):
         with self.assertRaises(APIException):
