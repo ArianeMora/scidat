@@ -158,6 +158,7 @@ class Annotate:
                 if ft in filename:
                     file_type = ft
             # ToDo: Update this --> won't work with user specified annotation columns
+            # ToDo: WARN: Must have the case_id as the last element
             label = f'{meta["project_id"]}{self.sep}{meta["sample_type"]}{self.sep}{meta["gender"]}{self.sep}' \
                     f'{meta["race"]}{self.sep}{meta["tumor_stage_num"]}{self.sep}{file_type}' \
                     f'{self.sep}{meta["case_id"]}'

@@ -16,6 +16,7 @@
 ###############################################################################
 
 from scidat.api import API, APIException
+from scidat.annotate import AnnotateException
 from sciutil import Biomart
 
 import os
@@ -45,7 +46,7 @@ class TestAPI(unittest.TestCase):
         manifest_file = meta_dir + 'manifest.tsv'
 
         self.api = API(manifest_file, gdc_client, clinical_file, sample_file, download_dir=self.tmp_dir,
-                            max_cnt=1)
+                            max_cnt=1, requires_lst=['counts', 'm450'])
 
     def tearDown(self):
         if not self.local:
@@ -112,14 +113,8 @@ class TestAPI(unittest.TestCase):
         df = self.api.get_rna_df()
 
         # Lets get annotation information from biomart, first we'll get the gene ids from the rnaseq df
-        gene_ids = list(df['id'].values)
         bm = Biomart()
-        output_path, gene_info_df = bm.build_gene_info_file('hsapiens_gene_ensembl', gene_ids, self.data_dir)
-        bm.build_gene_annot_dict(output_path)
-
-        # Add the metadata from biomart to our dataframe (this allows us to match the  gene ids
-        df = bm.add_gene_metadata_to_df(df)
-
+        df = bm.build_add_metadata(df, 'hsapiens_gene_ensembl', 'id', self.tmp_dir)
         # Now we want to add our methylation data to our dataframe, here we're being very strict and dropping any null
         # rows
         self.api.build_meth_df(self.tmp_dir, df, drop_empty_rows=True)
@@ -130,3 +125,89 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(meth_df.values[0][2], 'TSPAN6')
         self.assertEqual(meth_df.values[0][1], 2881)
         self.assertEqual(meth_df.values[0][-1], 0.0617698530665544)
+
+    def test_merge_rna_meth_values(self):
+        # Run almost the same as above
+        self.api.minify_meth_files(self.data_dir, self.tmp_dir)
+        # Build annotation and then build the df again
+        self.api.build_annotation()
+        self.api.build_meth_df(self.tmp_dir, join_id='id')
+        meth_df = self.api.get_meth_df()
+
+        # build rnaseq df first then join the meth df
+        self.api.build_rna_df(self.data_dir)
+        df = self.api.get_rna_df()
+
+        # Lets get annotation information from biomart, first we'll get the gene ids from the rnaseq df
+        bm = Biomart()
+        df = bm.build_add_metadata(df, 'hsapiens_gene_ensembl', 'id', self.tmp_dir)
+        merged_df = self.api.merge_rna_meth_values(meth_df, df, index_col='id', merge_col='gene_id')
+
+        self.assertEqual(merged_df.values[1][2], 'TNMD')
+        self.assertEqual(merged_df.values[1][1], 6)
+
+        self.assertEqual(merged_df.values[-1][2], 'CYP51A1')
+        self.assertEqual(merged_df.values[-1][1], 132)
+        self.assertEqual(merged_df.values[-1][-1], 0.935303719030208)
+
+        # Note we have much more rows in this merge because we don't drop the NA cols as we do in the prev test
+        self.assertEqual(len(merged_df), 18)
+
+    def test_get_mutation_values_on_filter(self):
+        filter_col = 'ssm.consequence.0.transcript.gene.symbol'
+        gene_ids = ['WASL', 'CDCP2', 'BHLHE40']
+        # First check if the exception is raised
+        with self.assertRaises(AnnotateException):
+            self.api.get_mutation_values_on_filter('ssm.consequence.0.transcript.gene.gene_id', gene_ids, filter_col)
+
+        # This will tell us we need to first download and create our mutation data frame
+        self.api.build_mutation_df(self.data_dir)
+
+        gene_ids = self.api.get_mutation_values_on_filter('ssm.consequence.0.transcript.gene.gene_id', gene_ids, filter_col)
+        #['ENSG00000173114', 'ENSG00000115414', 'ENSG00000157184'] --> these are the IDs that should be in the mutation df
+        self.assertEqual(gene_ids[0], 'ENSG00000157184')
+
+        changes = ['Small deletion']
+        gene_changes = self.api.get_mutation_values_on_filter(filter_col, changes, 'ssm.mutation_subtype')
+        self.assertEqual(gene_changes[0], 'FOLH1B')
+        self.assertEqual(len(gene_changes), 1)
+
+    def test_get_genes_with_mutations(self):
+        # This will tell us we need to first download and create our mutation data frame
+        self.api.build_mutation_df(self.data_dir)
+        genes = self.api.get_genes_with_mutations()
+
+        # Now lets get them just for one case
+        genes_case = self.api.get_genes_with_mutations(['TCGA-A3-3308'])
+
+        self.assertEqual(len(genes), 11)
+        self.assertEqual(len(genes_case), 6)
+
+    def test_get_values_from_df(self):
+        # build rnaseq df first then join the meth df
+        self.api.build_annotation()
+        self.api.build_rna_df(self.data_dir)
+        df = self.api.get_rna_df()
+        values, columns = self.api.get_values_from_df(df, ['TCGA-A3-3308'])
+        self.assertEqual(len(columns), 1)
+        self.assertEqual(values[0][0], 2881)
+
+    def test_get_cases_with_meta(self):
+        # Now we need to run the annotation building (thats what the previous API exception was for
+        metadata = {'race': 'white'}
+        with self.assertRaises(APIException):
+            self.api.get_cases_with_meta(metadata, "any")
+        self.api.build_annotation()
+
+        # Test first with badly formated metadata
+        with self.assertRaises(APIException):
+            self.api.get_cases_with_meta(metadata, "any")
+
+        # Now we want to check the functionality we expect
+        metadata = {'race': ['asian']}
+
+        cases = self.api.get_cases_with_meta(metadata, "any")
+        cases.sort()
+        self.assertEqual(cases[-1], 'TCGA-CZ-5989')
+        self.assertEqual(cases[0], 'TCGA-A3-3308')
+        self.assertEqual(len(cases), 2)

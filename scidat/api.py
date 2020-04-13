@@ -20,6 +20,7 @@ from scidat import Annotate
 
 from functools import reduce
 import time
+from typing import Tuple
 import pandas as pd
 import numpy as np
 import os
@@ -73,6 +74,10 @@ class API:
             self.u.warn_p(["Continuing..."])
 
         self.download.download_data_using_api(case_ids, 'mutation')
+
+    def build_mutation_df(self, mutation_dir=None):
+        mutation_dir = self.download_dir if not mutation_dir else mutation_dir
+        self.annotate.build_mutation_df(mutation_dir)
 
     def build_annotation(self) -> None:
         self.annotate.build_annotation()
@@ -224,8 +229,8 @@ class API:
             df = df.dropna()
         self.meth_df = df
 
-    def merge_rna_meth_values(self, meth_df: pd.DataFrame, rna_df: pd.DataFrame, merge_col='gene_id') -> pd.DataFrame:
-        self.rna_meth_df = meth_df.join(rna_df, on=merge_col)
+    def merge_rna_meth_values(self, meth_df: pd.DataFrame, rna_df: pd.DataFrame, index_col='id', merge_col='gene_id') -> pd.DataFrame:
+        self.rna_meth_df = rna_df.join(meth_df.set_index(index_col), on=merge_col)
         return self.rna_meth_df
 
     def save_annotation(self) -> None:
@@ -253,23 +258,20 @@ class API:
         return self.get_mutation_values_on_filter(column, case_ids, 'case_id')
 
     def get_mutation_values_on_filter(self, column: str, filter_values: list, filter_column: str) -> list:
+        # Throws an annotation API exception if the mutation df hasn't been created.
         mutation_df = self.annotate.get_mutation_df()
-        if mutation_df is None:
-            self.u.warn_p(["You have not yet built the mutation dataframe. Please run: "
-                           "\nbuild_mutation_df(self, mutation_dir: str, "
-                           "output_file=None, mutation_prefix='mutation', sep='\t', case_ids=None) -> None"])
-            return
+
         if not filter_values or not filter_column:
             # Now we want to query the gene ID column:
             return list(set(mutation_df[column].values))
         # Otherwise we need to filter by gene ids
         idxs = []
-        for value in mutation_df[column].values:
+        for value in mutation_df[filter_column].values:
             if value in filter_values:
                 idxs.append(True)
             else:
                 idxs.append(False)
-        return list(set(mutation_df[column].values[np.where(idxs == True)]))
+        return list(set(mutation_df[column].values[idxs]))
 
     def get_cases_with_mutations(self, gene_list=None, id_type='symbol') -> list:
         """
@@ -288,18 +290,29 @@ class API:
 
         return self.get_mutation_values_on_filter('case_id', gene_list, filter_column)
 
-    def get_values_from_files(self, case_ids=None, file_type='counts') -> np.array:
+    def get_values_from_df(self, df: pd.DataFrame, case_ids=None) -> Tuple[np.array, list]:
         """
 
         Parameters
         ----------
-        file_type
+        df
         case_ids
 
         Returns
         -------
 
         """
+        if case_ids is None:
+            return df.values, list(df.columns)
+        # Otherwise we only want to get the columns with the case_id in it
+        columns = []
+        for c in df.columns:
+            for case in case_ids:
+                # ToDo: WARN this won't be stable if we let users choose their own format for the filenames
+                if case == c.split(self.sep)[-1]:
+                    columns.append(c)
+                    break
+        return df[columns].values, columns
 
     def get_rna_df(self):
         if self.rna_df is not None:
@@ -329,10 +342,17 @@ class API:
 
         """
         cases_lst = []
+        if self.annotate.annotated_file_dict is None:
+            msg = self.u.msg.msg_data_gen("get_cases_with_meta", "annotate.clinical_df", ["build_annotation"])
+            self.u.err_p([msg])
+            raise APIException(msg)
+
         for key, values in meta.items():
             if not isinstance(values, list):
-                self.u.err_p([self.u.msg.msg_data_type("get_cases_with_meta", values, "list")])
-                return
+                msg = self.u.msg.msg_data_type("get_cases_with_meta", values, "list")
+                self.u.err_p([msg])
+                raise APIException(msg)
+
             cases_lst.append(list(set(self.annotate.clin_df['submitter_id'][self.annotate.clin_df[key].isin(values)])))
 
         if method == "all":
