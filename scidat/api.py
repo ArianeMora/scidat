@@ -26,6 +26,10 @@ import os
 
 
 class API:
+    """
+    API provides an interface to the download and annotate classes. They can also be used independently. Finally  it adds
+    helpful interfaces that query between the data-structures.
+    """
 
     def __init__(self, manifest_file, gdc_client, clinical_file, sample_file, requires_lst=None, clin_cols=None,
                  max_cnt=100, sciutil=None, split_manifest_dir='.', download_dir='.', meta_dir='.', sep='_'):

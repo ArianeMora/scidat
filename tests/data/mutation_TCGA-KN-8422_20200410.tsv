@@ -1,0 +1,6 @@
+case_id	ssm.ssm_id	ssm.consequence.0.transcript.gene.symbol	ssm.consequence.0.transcript.gene.gene_id	ssm.genomic_dna_change	ssm.mutation_subtype	consequence_type	consequence_type_transcript_idx	aa_change	aa_change_transcript_idx
+TCGA-KN-8422	1	SIGLEC14	ENSG00000163125	chr3:g.33544725G>A	Single base substitution	"intron_variant,upstream_gene_variant,missense_variant,downstream_gene_variant"	"0,1,3"	Q379P	"2,3,4,5,8,9"
+TCGA-KN-8422	2	BHLHE40	ENSG00000157184	chr1:g.158606602T>A	Single base substitution	"upstream_gene_variant,missense_variant"	0		
+TCGA-KN-8422	3	NOG	ENSG00000138653	chr13:g.19646803G>C	Single base substitution	"missense_variant,downstream_gene_variant,downstream_gene_variant"	"0,1,3"		0
+TCGA-KN-8422	4	FOLH1B	ENSG00000019169	chr3:g.88156102C>A	Small deletion	3_prime_UTR_variant	"0,1"	"A76V,A76V,A76V,A66V,A76V,A46V"	1
+TCGA-KN-8422	5	ZNF528	ENSG00000182827	chr19:g.51645940G>A	Small insertion	"non_coding_transcript_exon_variant,non_coding_transcript_exon_variant"	"0,1"		"1,3,4,6,7,8"
