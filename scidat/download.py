@@ -24,12 +24,6 @@ from subprocess import Popen
 from sciutil import *
 
 
-class SciException(Exception):
-
-    def __init__(self, message=''):
-        Exception.__init__(self, message)
-
-
 class DownloadException(SciException):
     def __init__(self, message=''):
         Exception.__init__(self, message)

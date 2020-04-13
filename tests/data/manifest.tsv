@@ -1,6 +1,6 @@
 id	filename	md5	size	state
 001ae925-102c-4818-8eb0-c8d2e5726e7c	d3f73c0f-d518-4e91-b038-a4360495ee27.htseq.counts.gz	a20fd7085b4d1b35e228d65ae2cee800	255968	validated
 003a2cdd-1e48-480d-8e8f-fe0351ca8141	jhu-usc.edu_KICH.HumanMethylation450.1.lvl-3.TCGA-KN-8422-01A-11D-2312-05.gdc_hg38.txt	b8597cb371a27ee00af479bac007da63	141301713	validated
-00417d3b-a955-4c38-8c40-f1a2627e6cee	jhu-usc.edu_KIRC.HumanMethylation450.3.lvl-3.TCGA-BP-5196-01A-01D-1424-05.gdc_hg38.txt	ec26030c1901a0358a1f3a207d34a38a	141302752	validated
+19601351-3c26-4293-b87d-97222cd64a19	jhu-usc.edu_KIRC.HumanMethylation450.6.lvl-3.TCGA-CZ-5989-01A-11D-1670-05.gdc_hg38.txt	9e6afffd2e8af6153d67956311b92433	141295271	validated
 0085c623-bcdd-4b71-960c-a42acd0e53e4	801c2c60-5dc2-43f7-949f-18b5a35a4ca3.htseq.counts.gz	4bfe0e3c85512a673c822fa01763cb21	255034	validated
 00d64ab2-4616-4f40-9c53-70b462b88c95	0e0cf108-f7ff-412b-8840-1dd1fce76d6b.htseq.counts.gz	8fbe8ebd049bfaa4e0bf7fdb41b36e13	250698	validated

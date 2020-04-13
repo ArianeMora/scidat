@@ -29,7 +29,7 @@ class TestAnnotate(unittest.TestCase):
 
     def setUp(self):
         # Setup temp dir
-        self.local = True
+        self.local = False
         if not self.local:
             self.tmp_dir = tempfile.mkdtemp(prefix='scidatannotate_tmp_')
         else:

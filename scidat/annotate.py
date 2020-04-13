@@ -21,13 +21,7 @@ import os
 import pandas as pd
 from typing import Tuple
 
-from sciutil import *
-
-
-class SciException(Exception):
-
-    def __init__(self, message=''):
-        Exception.__init__(self, message)
+from sciutil import SciException, SciUtil
 
 
 class AnnotateException(SciException):
@@ -57,7 +51,6 @@ class Annotate:
         self.sep = sep
         self.case_to_mutation = None
         self.case_to_file = None
-
 
     def run_setup(self) -> None:
         self.clin_df = self.setup_clin_df()

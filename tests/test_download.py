@@ -49,11 +49,11 @@ class TestDownload(unittest.TestCase):
         files_post = os.listdir(self.tmp_dir)
 
         # Check file name
-        self.assertEqual(files_post[0], 'd3f73c0f-d518-4e91-b038-a4360495ee27.htseq.counts.tsv')
+        self.assertEqual(files_post[0], '001ae925-102c-4818-8eb0-c8d2e5726e7c')
 
     def test_check_downloads(self):
-
-        #self.download.download()
+        if not self.local:
+            self.download.download()
 
         download_status = self.download.check_downloads(self.data_dir + 'download_status.csv')
         download_status.sort()
@@ -62,8 +62,8 @@ class TestDownload(unittest.TestCase):
         print(download_status)
         self.assertEqual(download_status[0][0], '001ae925-102c-4818-8eb0-c8d2e5726e7c')
         self.assertEqual(download_status[0][5], 'True')
-        self.assertEqual(download_status[-1][0], '00d64ab2-4616-4f40-9c53-70b462b88c95')
-        self.assertEqual(download_status[-1][5], 'False')
+        self.assertEqual(download_status[-1][0], '19601351-3c26-4293-b87d-97222cd64a19')
+        self.assertEqual(download_status[-1][5], 'True')
 
         # Check the file was written with the download status
         self.assertEqual(os.path.exists(self.data_dir + 'download_status.csv'), True)
@@ -80,7 +80,7 @@ class TestDownload(unittest.TestCase):
 
         self.assertEqual(len(files_pre), len(files_post) - 2)
 
-        assert 'jhu-usc.edu_KIRC.HumanMethylation450.3.lvl-3.TCGA-BP-5196-01A-01D-1424-05.gdc_hg38.txt' in files_post
+        assert 'jhu-usc.edu_KIRC.HumanMethylation450.6.lvl-3.TCGA-CZ-5989-01A-11D-1670-05.gdc_hg38.txt' in files_post
         assert 'd3f73c0f-d518-4e91-b038-a4360495ee27.htseq.counts.tsv' in files_post
         assert 'd3f73c0f-d518-4e91-b038-a4360495ee27.htseq.counts.tsv' not in files_pre
 

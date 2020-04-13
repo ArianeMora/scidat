@@ -14,7 +14,7 @@
 #    along with this program. If not, see <http://www.gnu.org/licenses/>.     #
 #                                                                             #
 ###############################################################################
-from sciutil import SciUtil
+from sciutil import SciUtil, SciException
 from scidat import Download
 from scidat import Annotate
 
@@ -23,6 +23,11 @@ import time
 import pandas as pd
 import numpy as np
 import os
+
+
+class APIException(SciException):
+    def __init__(self, message=''):
+        Exception.__init__(self, message)
 
 
 class API:
@@ -54,6 +59,9 @@ class API:
         self.annotate = Annotate(self.meta_dir, self.clinical_file, self.sample_file, self.manifest_file,
                                  self.requires_lst, self.sep, self.clin_cols, self.u)
 
+    def download_data_from_manifest(self):
+        self.download.download()
+
     def download_mutation_data(self, case_ids=None) -> None:
         # If there are no case ids then we'll download the mutation data for all cases in the annotation data.
         if not case_ids:
@@ -81,21 +89,26 @@ class API:
         -------
 
         """
+        # first check if they have performed the annotation step
+        if self.annotate.annotated_file_dict is None:
+            msg = self.u.msg.msg_data_gen("build_rna_df", "annotate.annotated_file_dict", ["build_annotation"])
+            self.u.err_p([msg])
+            raise APIException(msg)
         rna_seq_dir = rna_seq_dir if rna_seq_dir is not None else self.download_dir
         files = os.listdir(rna_seq_dir)
         count_files = []
         for f in files:
-            if 'counts' in f and '.DS' not in f and '.txt' in f:
-                count_files.append(rna_seq_dir + f)
+            if 'counts' in f and '.DS' not in f and '.tsv' in f:
+                count_files.append(f)
 
         first_file = count_files[0][:-3] + 'gz'
-        df = pd.read_csv(count_files[0], sep='\t', header=None)
+        df = pd.read_csv(rna_seq_dir + count_files[0], sep='\t', header=None)
         df.columns = ['id', self.annotate.annotated_file_dict[first_file]['label']]
 
         # Add all others.
         for f in count_files[1:]:
             try:
-                df_tmp = pd.read_csv(f, sep='\t', header=None)
+                df_tmp = pd.read_csv(rna_seq_dir + f, sep='\t', header=None)
                 name = self.annotate.annotated_file_dict[f[:-3] + 'gz']['label']
                 df_tmp.columns = ['id', name]
                 df = df.join(df_tmp.set_index('id'), on='id')
@@ -108,16 +121,11 @@ class API:
         processed_dir = processed_dir if processed_dir is not None else self.download_dir
 
         files = os.listdir(processed_dir)
-        count_files = []
         cpg_files = []
 
         for f in files:
             if 'HumanMethylation450' in f and 'min' not in f and '.DS' not in f:
                 cpg_files.append(f)
-            elif 'min' not in f and '.DS' not in f:
-                count_files.append(f)
-
-        self.u.dp(["Minified ", len(cpg_files), "\n Number of count files to process: ", len(count_files)])
 
         cpg_to_gene = {}
 
@@ -169,7 +177,7 @@ class API:
             except Exception as e:
                 self.u.err_p([f, e])
 
-    def build_meth_df(self, cpg_min_dir: str, df=None, drop_empty_rows=False) -> None:
+    def build_meth_df(self, cpg_min_dir: str, df=None, drop_empty_rows=False, join_id='gene_id') -> None:
         """
         Here we build a dataframe based on the methylation data, we can add it to an existing dataframe
         and just join on the columns or create a new dataframe. Here we also choose whether to keep empty rows or only
@@ -180,25 +188,41 @@ class API:
         cpg_min_dir
         df
         drop_empty_rows
-
+        join_id: Tells us which column we want to join on, this must be a column in DF if we're joining to that
         Returns
         -------
 
         """
+        if self.annotate.annotated_file_dict is None:
+            msg = self.u.msg.msg_data_gen("build_meth_df", "annotate.annotated_file_dict", ["build_annotation"])
+            self.u.err_p([msg])
+            raise APIException(msg)
         files = os.listdir(cpg_min_dir)
-        df = pd.DataFrame() if df is None else df
+        cpg_files = []
+
         for f in files:
+            if 'HumanMethylation450' in f and 'min' not in f and '.DS' not in f:
+                cpg_files.append(f)
+
+        start_idx = 0
+        if df is None and len(cpg_files) > 0:
+            df = pd.read_csv(cpg_min_dir + cpg_files[0])
+            name = self.annotate.annotated_file_dict[cpg_files[0]]['label']
+            df.columns = ['id', name]
+            start_idx = 1
+
+        for f in cpg_files[start_idx:]:
             try:
                 df_tmp = pd.read_csv(cpg_min_dir + f)
                 name = self.annotate.annotated_file_dict[f]['label']
                 df_tmp.columns = ['id', name]
 
-                df = df.join(df_tmp.set_index('id'), on='gene_id')
+                df = df.join(df_tmp.set_index('id'), on=join_id)
             except Exception as e:
                 print(e)
         if drop_empty_rows:
             df = df.dropna()
-        return df
+        self.meth_df = df
 
     def merge_rna_meth_values(self, meth_df: pd.DataFrame, rna_df: pd.DataFrame, merge_col='gene_id') -> pd.DataFrame:
         self.rna_meth_df = meth_df.join(rna_df, on=merge_col)
@@ -283,6 +307,13 @@ class API:
         else:
             self.build_rna_df()
             return self.rna_df
+
+    def get_meth_df(self):
+        if self.meth_df is not None:
+            return self.meth_df
+        msg = self.u.msg.msg_data_gen("get_meth_df", "meth_df", ["minify_meth_files", "build_meth_df"])
+        self.u.err_p([msg])
+        raise APIException(msg)
 
     def get_cases_with_meta(self, meta: dict, method="all") -> list:
         """
