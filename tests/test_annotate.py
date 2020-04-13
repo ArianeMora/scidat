@@ -29,11 +29,16 @@ class TestAnnotate(unittest.TestCase):
 
     def setUp(self):
         # Setup temp dir
-        self.local = False
-        if not self.local:
-            self.tmp_dir = tempfile.mkdtemp(prefix='scidatannotate_tmp_')
+        self.local = True
+        if self.local:
+            THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+            self.tmp_dir = os.path.join(THIS_DIR, 'data/tmp/')
+            if os.path.exists(self.tmp_dir):
+                shutil.rmtree(self.tmp_dir)
+            os.mkdir(self.tmp_dir)
         else:
-            self.tmp_dir = '../tests/data/tmp/'
+            self.tmp_dir = tempfile.mkdtemp(prefix='scidatannotate_tmp_')
+
         meta_dir = '../tests/data/'
         clinical_file = meta_dir + 'clinical.txt'
         sample_file = meta_dir + 'sample_sheet.txt'
@@ -121,7 +126,8 @@ class TestAnnotate(unittest.TestCase):
 
         cases = self.annotator.get_cases()
 
-        self.assertEqual(cases[0], "TCGA-KIRC_TCGA-A3-3308")
+        cases.sort()
+        self.assertEqual(cases[0], "TCGA-KICH_TCGA-KN-8422")
         self.assertEqual(cases[-1], "TCGA-KIRP_TCGA-A4-8312")
         self.assertEqual(len(cases), 4)
 

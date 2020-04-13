@@ -26,11 +26,17 @@ import unittest
 
 
 class TestAPI(unittest.TestCase):
+
     def setUp(self):
         # Flag to set data to be local so we don't have to download them repeatedly. ToDo: Remove when publishing.
         self.local = True
+
         if self.local:
-            self.tmp_dir = '../tests/data/tmp/'
+            THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+            self.tmp_dir = os.path.join(THIS_DIR, 'data/tmp/')
+            if os.path.exists(self.tmp_dir):
+                shutil.rmtree(self.tmp_dir)
+            os.mkdir(self.tmp_dir)
         else:
             self.tmp_dir = tempfile.mkdtemp(prefix='scidatannotate_tmp_')
 
@@ -38,7 +44,6 @@ class TestAPI(unittest.TestCase):
         #                  max_cnt=100, sciutil=None, split_manifest_dir='.', download_dir='.', meta_dir='.', sep='_'):
 
         self.data_dir = '../tests/data/'
-        manifest_file = self.data_dir + 'manifest.tsv'
         gdc_client = self.data_dir + './gdc-client'
         meta_dir = '../tests/data/'
         clinical_file = meta_dir + 'clinical.txt'
@@ -49,9 +54,7 @@ class TestAPI(unittest.TestCase):
                             max_cnt=1, requires_lst=['counts', 'm450'])
 
     def tearDown(self):
-        if not self.local:
-            # Delete temp dir
-            shutil.rmtree(self.tmp_dir)
+        shutil.rmtree(self.tmp_dir)
 
     def test_download_mutation_data(self):
         # Here we want to download the mutation files
@@ -77,10 +80,15 @@ class TestAPI(unittest.TestCase):
 
         # Now we want to first build the annotation
         self.api.build_annotation()
+
+        # Now lets copy over the data to the download dir (i.e. the temp dir)
+        os.system(f'cp {self.data_dir}d3f73c0f-d518-4e91-b038-a4360495ee27.htseq.counts.tsv {self.tmp_dir}')
+
+        # Lets now build it and run our tests
         self.api.build_rna_df()
         df = self.api.get_rna_df()
-        self.assertEqual("TCGA-KIRC_PrimaryTumor_male_asian_3_None_TCGA-KIRC_TCGA-A3-3308", df.columns[1])
-        self.assertEqual(df['TCGA-KIRC_PrimaryTumor_male_asian_3_None_TCGA-KIRC_TCGA-A3-3308'].values[3], 753)
+        self.assertEqual("TCGA-KIRC_PrimaryTumor_male_asian_3_counts_TCGA-KIRC_TCGA-A3-3308", df.columns[1])
+        self.assertEqual(df['TCGA-KIRC_PrimaryTumor_male_asian_3_counts_TCGA-KIRC_TCGA-A3-3308'].values[3], 753)
 
     def test_minify_meth_files(self):
         self.api.minify_meth_files(self.data_dir, self.tmp_dir)
@@ -164,8 +172,9 @@ class TestAPI(unittest.TestCase):
         self.api.build_mutation_df(self.data_dir)
 
         gene_ids = self.api.get_mutation_values_on_filter('ssm.consequence.0.transcript.gene.gene_id', gene_ids, filter_col)
+        gene_ids.sort()
         #['ENSG00000173114', 'ENSG00000115414', 'ENSG00000157184'] --> these are the IDs that should be in the mutation df
-        self.assertEqual(gene_ids[0], 'ENSG00000157184')
+        self.assertEqual(gene_ids[0], 'ENSG00000115414')
 
         changes = ['Small deletion']
         gene_changes = self.api.get_mutation_values_on_filter(filter_col, changes, 'ssm.mutation_subtype')

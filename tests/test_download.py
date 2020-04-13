@@ -29,18 +29,21 @@ class TestDownload(unittest.TestCase):
         # Flag to set data to be local so we don't have to download them repeatedly. ToDo: Remove when publishing.
         self.local = True
         if self.local:
-            self.tmp_dir = '../tests/data/tmp/'
+            THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+            self.tmp_dir = os.path.join(THIS_DIR, 'data/tmp/')
+            if os.path.exists(self.tmp_dir):
+                shutil.rmtree(self.tmp_dir)
+            os.mkdir(self.tmp_dir)
         else:
             self.tmp_dir = tempfile.mkdtemp(prefix='scidatannotate_tmp_')
-        self.data_dir = '../tests/data/'
+        self.data_dir = os.path.join(THIS_DIR, 'data/')
         manifest_file = self.data_dir + 'manifest.tsv'
         gdc_client = self.data_dir + './gdc-client'
         self.download = Download(manifest_file, self.tmp_dir, self.tmp_dir, gdc_client, max_cnt=1)
 
     def tearDown(self):
-        if not self.local:
-            # Delete temp dir
-            shutil.rmtree(self.tmp_dir)
+        # Delete temp dir
+        shutil.rmtree(self.tmp_dir)
 
     def test_download(self):
         self.download.download()
@@ -52,14 +55,16 @@ class TestDownload(unittest.TestCase):
         self.assertEqual(files_post[0], '001ae925-102c-4818-8eb0-c8d2e5726e7c')
 
     def test_check_downloads(self):
-        if not self.local:
-            self.download.download()
+        # Save us from having to download them again
+        os.system(f'cp -r {self.data_dir}001ae925-102c-4818-8eb0-c8d2e5726e7c {self.tmp_dir}')
+        os.system(f'cp -r {self.data_dir}19601351-3c26-4293-b87d-97222cd64a19 {self.tmp_dir}')
+        self.download.copy_downloads_to_new_dir(self.tmp_dir)
 
+        # Run the download check
         download_status = self.download.check_downloads(self.data_dir + 'download_status.csv')
         download_status.sort()
 
         # Check the download status was correctly assigned
-        print(download_status)
         self.assertEqual(download_status[0][0], '001ae925-102c-4818-8eb0-c8d2e5726e7c')
         self.assertEqual(download_status[0][5], 'True')
         self.assertEqual(download_status[-1][0], '19601351-3c26-4293-b87d-97222cd64a19')
@@ -69,32 +74,32 @@ class TestDownload(unittest.TestCase):
         self.assertEqual(os.path.exists(self.data_dir + 'download_status.csv'), True)
 
     def test_copy_downloads_to_new_dir(self):
-        files_pre = os.listdir(self.tmp_dir)
+        # Copy the files to the tmp dir
+        os.system(f'cp -r {self.data_dir}001ae925-102c-4818-8eb0-c8d2e5726e7c {self.tmp_dir}')
+        os.system(f'cp -r {self.data_dir}19601351-3c26-4293-b87d-97222cd64a19 {self.tmp_dir}')
 
-        if not self.local:
-            self.download.download()
+        files_pre = os.listdir(self.tmp_dir)
 
         self.download.copy_downloads_to_new_dir(self.tmp_dir)
 
         files_post = os.listdir(self.tmp_dir)
 
-        self.assertEqual(len(files_pre), len(files_post) - 2)
-
-        assert 'jhu-usc.edu_KIRC.HumanMethylation450.6.lvl-3.TCGA-CZ-5989-01A-11D-1670-05.gdc_hg38.txt' in files_post
-        assert 'd3f73c0f-d518-4e91-b038-a4360495ee27.htseq.counts.tsv' in files_post
-        assert 'd3f73c0f-d518-4e91-b038-a4360495ee27.htseq.counts.tsv' not in files_pre
+        self.assertEqual('jhu-usc.edu_KIRC.HumanMethylation450.6.lvl-3.TCGA-CZ-5989-01A-11D-1670-05.gdc_hg38.txt' in
+                         files_post, True)
+        self.assertEqual('d3f73c0f-d518-4e91-b038-a4360495ee27.htseq.counts.tsv' in files_post, True)
+        self.assertEqual('d3f73c0f-d518-4e91-b038-a4360495ee27.htseq.counts.tsv' in files_pre, False)
 
     def test_download_data_using_api(self):
         # Here we want to download the mutation files
         case_ids = ['TCGA-A3-3308', 'TCGA-KN-8422', 'TCGA-CZ-5989-11A', 'TCGA-A4-8312-01A']
         self.download.download_data_using_api(case_ids, 'mutation')
+
         labels = []
         for c in case_ids:
             labels.append(self.download.u.generate_label(['mutation', c], '.tsv'))
         # Let's check if the files were downloaded
         files = os.listdir(self.tmp_dir)
         overlap = 0
-        print(labels, files)
         for f in files:
             if f in labels:
                 overlap += 1
