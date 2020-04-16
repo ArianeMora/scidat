@@ -21,10 +21,6 @@ import sys
 
 from scidat import __version__
 
- # = '/Users/ariane/Documents/data/tcga/kidney/'
- # = f'{base_dir}./gdc-client'
- # = f'{base_dir}downloads/'
-# manifest = f'{base_dir}gdc_manifest_20200402_003828.txt'
 
 def print_help():
     lines = [f'scidat {__version__}',
@@ -48,10 +44,10 @@ def main(args=None):
         print_help()
         sys.exit(0)
     elif sys.argv[1] in {'-v', '--v', '-version', '--version'}:
-        print(f'phylodm v{__version__}')
+        print(f'scidat v{__version__}')
         sys.exit(0)
     else:
-        print(f'phylodm v{__version__}')
+        print(f'scidat v{__version__}')
         args = parser.parse_args(args)
 
         # Validate the input arguments.

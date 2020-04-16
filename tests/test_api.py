@@ -204,9 +204,19 @@ class TestAPI(unittest.TestCase):
         self.api.build_annotation()
         self.api.build_rna_df(self.data_dir)
         df = self.api.get_rna_df()
-        values, columns = self.api.get_values_from_df(df, ['TCGA-A3-3308'])
-        self.assertEqual(len(columns), 1)
-        self.assertEqual(values[0][0], 2881)
+        values, columns, df = self.api.get_values_from_df(df, 'id', ['TCGA-A3-3308'])
+        self.assertEqual(len(columns), 2)
+        self.assertEqual(values[0][1], 2881)
+
+        # Lets try just getting some gene IDs of interest
+        values, columns, df = self.api.get_values_from_df(df, 'id', ['TCGA-A3-3308'], ['ENSG00000000938.11', 'ENSG00000000005.5'])
+        print(df)
+        self.assertEqual(len(df), 2)
+
+        # Lets also check if we do a oclumn must include
+        values, columns, df = self.api.get_values_from_df(df, 'id', ['TCGA-A3-3308'], None, column_name_includes=['Solid'])
+        print(df)
+        self.assertEqual(len(df), 2)
 
     def test_get_cases_with_meta(self):
         # Now we need to run the annotation building (thats what the previous API exception was for
@@ -227,3 +237,7 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(cases[-1], 'TCGA-CZ-5989')
         self.assertEqual(cases[0], 'TCGA-A3-3308')
         self.assertEqual(len(cases), 2)
+
+        female_stage1 = self.api.get_cases_with_meta({'gender': ['female'], 'tumor_stage_num': [1, 2], 'project_id': ['TCGA-KIRP']})
+        female_stage4 = self.api.get_cases_with_meta({'gender': ['female'], 'tumor_stage_num': [3, 4], 'project_id': ['TCGA-KIRP']})
+

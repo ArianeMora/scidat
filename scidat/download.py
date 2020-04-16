@@ -30,7 +30,9 @@ class DownloadException(SciException):
 
 
 class Download:
-
+    """
+    Class to enable the download of data from TCGA.
+    """
     def __init__(self, manifest_file, split_manifest_dir, download_dir, gdc_client, max_cnt=100, sciutil=None):
         self.u = SciUtil() if not sciutil else sciutil
         self.download_dir = download_dir

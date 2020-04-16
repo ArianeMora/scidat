@@ -25,3 +25,4 @@ __license__ = 'GPL3'
 
 from scidat.download import Download
 from scidat.annotate import Annotate
+from scidat.api import API

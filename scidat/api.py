@@ -62,6 +62,8 @@ class API:
 
     def download_data_from_manifest(self):
         self.download.download()
+        # Copy downloads
+        self.download.copy_downloads_to_new_dir(self.download_dir)
 
     def download_mutation_data(self, case_ids=None) -> None:
         # If there are no case ids then we'll download the mutation data for all cases in the annotation data.
@@ -294,29 +296,59 @@ class API:
 
         return self.get_mutation_values_on_filter('case_id', gene_list, filter_column)
 
-    def get_values_from_df(self, df: pd.DataFrame, case_ids=None) -> Tuple[np.array, list]:
+    def get_values_from_df(self, df: pd.DataFrame, gene_id_column: str, case_ids=None, gene_ids=None,
+                           column_name_includes=None, column_name_method="all") -> Tuple[np.array, list, pd.DataFrame]:
         """
 
         Parameters
         ----------
         df
         case_ids
+        gene_ids
+        gene_id_column
 
         Returns
         -------
 
         """
-        if case_ids is None:
-            return df.values, list(df.columns)
+        if case_ids is None and gene_ids is None:
+            return df.values, list(df.columns), df
         # Otherwise we only want to get the columns with the case_id in it
-        columns = []
+        columns = [] if case_ids is not None else list(df.columns)
         for c in df.columns:
             for case in case_ids:
                 # ToDo: WARN this won't be stable if we let users choose their own format for the filenames
                 if case == c.split(self.sep)[-1]:
                     columns.append(c)
                     break
-        return df[columns].values, columns
+        # Lets check if we also have a column requirement
+        if column_name_includes is not None:
+
+            new_columns = []
+            for c in columns:
+                i = 0
+                for req in column_name_includes:
+                    if req in c:
+                        i += 1
+                if column_name_method == 'all':
+                    if i == len(column_name_includes):
+                        new_columns.append(c)
+                elif len(column_name_includes) > 0:
+                    new_columns.append(c)
+            columns = new_columns
+        # Lets check if they are filtering on the gene id as well
+        if gene_ids is not None:
+            idxs = []
+            i = 0
+            for gene_id in df[gene_id_column].values:
+                if gene_id in gene_ids:
+                    idxs.append(i)
+                i += 1
+
+            new_df = pd.DataFrame(df[[gene_id_column] + columns].values[idxs], columns=[gene_id_column] + columns)
+            return new_df.values, list(new_df.columns), new_df
+
+        return df[[gene_id_column] + columns].values, [gene_id_column] + columns, df[[gene_id_column] + columns]
 
     def get_rna_df(self):
         if self.rna_df is not None:
