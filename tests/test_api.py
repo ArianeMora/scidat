@@ -30,9 +30,9 @@ class TestAPI(unittest.TestCase):
     def setUp(self):
         # Flag to set data to be local so we don't have to download them repeatedly. ToDo: Remove when publishing.
         self.local = False
-
+        THIS_DIR = os.path.dirname(os.path.abspath(__file__))
         if self.local:
-            THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+
             self.tmp_dir = os.path.join(THIS_DIR, 'data/tmp/')
             if os.path.exists(self.tmp_dir):
                 shutil.rmtree(self.tmp_dir)
@@ -43,12 +43,11 @@ class TestAPI(unittest.TestCase):
         # def __init__(self, manifest_file, gdc_client, clinical_file, sample_file, requires_lst=None, clin_cols=None,
         #                  max_cnt=100, sciutil=None, split_manifest_dir='.', download_dir='.', meta_dir='.', sep='_'):
 
-        self.data_dir = '../tests/data/'
+        self.data_dir = os.path.join(THIS_DIR, 'data/')
         gdc_client = self.data_dir + './gdc-client'
-        meta_dir = '../tests/data/'
-        clinical_file = meta_dir + 'clinical.txt'
-        sample_file = meta_dir + 'sample_sheet.txt'
-        manifest_file = meta_dir + 'manifest.tsv'
+        clinical_file = self.data_dir + 'clinical.txt'
+        sample_file = self.data_dir + 'sample_sheet.txt'
+        manifest_file = self.data_dir + 'manifest.tsv'
 
         self.api = API(manifest_file, gdc_client, clinical_file, sample_file, self.tmp_dir, self.tmp_dir,
                             max_cnt=1, requires_lst=['counts', 'm450'])

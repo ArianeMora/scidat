@@ -29,9 +29,9 @@ class TestAnnotate(unittest.TestCase):
 
     def setUp(self):
         # Setup temp dir
+        THIS_DIR = os.path.dirname(os.path.abspath(__file__))
         self.local = False
         if self.local:
-            THIS_DIR = os.path.dirname(os.path.abspath(__file__))
             self.tmp_dir = os.path.join(THIS_DIR, 'data/tmp/')
             if os.path.exists(self.tmp_dir):
                 shutil.rmtree(self.tmp_dir)
@@ -39,7 +39,7 @@ class TestAnnotate(unittest.TestCase):
         else:
             self.tmp_dir = tempfile.mkdtemp(prefix='scidatannotate_tmp_')
 
-        meta_dir = '../tests/data/'
+        meta_dir = os.path.join(THIS_DIR, 'data/')
         clinical_file = meta_dir + 'clinical.txt'
         sample_file = meta_dir + 'sample_sheet.txt'
         manifest_file = meta_dir + 'manifest.tsv'

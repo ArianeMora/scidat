@@ -28,8 +28,9 @@ class TestDownload(unittest.TestCase):
     def setUp(self):
         # Flag to set data to be local so we don't have to download them repeatedly. ToDo: Remove when publishing.
         self.local = False
+        THIS_DIR = os.path.dirname(os.path.abspath(__file__))
         if self.local:
-            THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+
             self.tmp_dir = os.path.join(THIS_DIR, 'data/tmp/')
             if os.path.exists(self.tmp_dir):
                 shutil.rmtree(self.tmp_dir)
