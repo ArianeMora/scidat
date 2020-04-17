@@ -13,10 +13,13 @@ pip install scidat
 The API combines the functions in Download and Annotation. It removes some of the ability to set specific directories etc but makes it easier to perform the functions.
 
 See example notebook for how we get the following from the TCGA site:
+```
     1. manifest_file
     2. gdc_client
     3. clinical_file
     4. sample_file
+```
+
 ```
 api = API(manifest_file, gdc_client, clinical_file, sample_file, requires_lst=None, clin_cols=None,
                  max_cnt=100, sciutil=None, split_manifest_dir='.', download_dir='.', meta_dir='.', sep='_')
@@ -43,10 +46,19 @@ Step 4. Generate RNAseq dataframe
 # Generates the RNA dataframe from the downloaded folder
 api.build_rna_df()
 ```
-Step 5. Get cases that have any mutations
+Step 5. Get cases that have any mutations or specific mutations
 ```
 # Returns a list of cases that have mutations (either in any gene if gene_list = None or in specific genes)
 list_of_cases = api.get_cases_with_mutations(gene_list=None, id_type='symbol')
+
+# Get genes with a small deletion
+filter_col = 'ssm.consequence.0.transcript.gene.symbol'
+genes = api.get_mutation_values_on_filter(filter_col, ['Small deletion'], 'ssm.mutation_subtype')
+
+# Get genes with a specifc genomic change: ssm.genomic_dna_change
+filter_col = 'case_id'
+cases =  api.get_mutation_values_on_filter(filter_col, ['chr13:g.45340134A>G'], 'ssm.genomic_dna_change')
+
 ```
 Step 6. Get cases with specific metadata information
 

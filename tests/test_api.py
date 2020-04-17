@@ -56,6 +56,27 @@ class TestAPI(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tmp_dir)
 
+    def test_download(self):
+
+        self.api.download_data_from_manifest()
+        # Now there should be an extra file in the downloads dir
+        files_post = os.listdir(self.tmp_dir)
+
+        # Check file name
+        self.assertEqual(files_post[0], '001ae925-102c-4818-8eb0-c8d2e5726e7c')
+        # Run the download check
+        download_status = self.api.download.check_downloads(self.data_dir + 'download_status.csv')
+        download_status.sort()
+
+        # Check the download status was correctly assigned
+        self.assertEqual(download_status[0][0], '001ae925-102c-4818-8eb0-c8d2e5726e7c')
+        self.assertEqual(download_status[0][5], 'True')
+        self.assertEqual(download_status[-1][0], '19601351-3c26-4293-b87d-97222cd64a19')
+        self.assertEqual(download_status[-1][5], 'True')
+
+        # Check the file was written with the download status
+        self.assertEqual(os.path.exists(self.data_dir + 'download_status.csv'), True)
+
     def test_download_mutation_data(self):
         # Here we want to download the mutation files
         case_ids = ['TCGA-A3-3308', 'TCGA-KN-8422', 'TCGA-CZ-5989-11A', 'TCGA-A4-8312-01A']

@@ -306,4 +306,8 @@ class Download:
                         file_cnt += 1
                         cnt = 0
                         to_write = [hdr]
+            # We want to download the last part of the files
+            new_manifest = f'{self.split_manifest_dir}{file_cnt}_{manifest_filename}'
+            self.write_file(new_manifest, to_write)
+            cmds.append(f'{self.gdc_client} download -m {new_manifest} -d {self.download_dir}')
         self.run_cmds(cmds)
