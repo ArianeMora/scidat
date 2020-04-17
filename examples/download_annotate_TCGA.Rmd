@@ -73,6 +73,8 @@ scidat <- import("scidat")
 sciutil <- import("sciutil")
 sciviso <- import ("sciviso")
 mpl <- import ("matplotlib")
+np <- import("numpy")
+pd <- import ("pandas")
 ```
 
 ## Section 3: File download
@@ -235,9 +237,6 @@ log2_df_values <- function(columns, log2_df, raw_df, id_column, new_column_prefi
 
 
 ```{r}
-np <- import("numpy")
-pd <- import ("pandas")
-mpl <- import ("matplotlib")
 
 filter_col <- 'ssm.consequence.0.transcript.gene.symbol'
 column_returned <- "case_id"

@@ -125,9 +125,8 @@ class TestAnnotate(unittest.TestCase):
         self.annotator.build_annotation()
 
         cases = self.annotator.get_cases()
-
         cases.sort()
-        self.assertEqual(cases[0], "TCGA-KICH_TCGA-KN-8422")
-        self.assertEqual(cases[-1], "TCGA-KIRP_TCGA-A4-8312")
+        self.assertEqual(cases[0], "TCGA-A3-3308")
+        self.assertEqual(cases[-1], "TCGA-KN-8422")
         self.assertEqual(len(cases), 4)
 

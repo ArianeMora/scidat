@@ -37,8 +37,8 @@ class API:
     helpful interfaces that query between the data-structures.
     """
 
-    def __init__(self, manifest_file, gdc_client, clinical_file, sample_file, requires_lst=None, clin_cols=None,
-                 max_cnt=100, sciutil=None, split_manifest_dir='.', download_dir='.', meta_dir='.', sep='_'):
+    def __init__(self, manifest_file, gdc_client, clinical_file, sample_file, download_dir, meta_dir, requires_lst=None, clin_cols=None,
+                 max_cnt=100, sciutil=None, split_manifest_dir=None, sep='_'):
         self.mutation_file_dir = None
         self.u = SciUtil() if not sciutil else sciutil
         self.download_dir = download_dir
@@ -48,7 +48,7 @@ class API:
         self.sample_file = sample_file
         self.requires_lst = [] if not requires_lst else requires_lst
         self.max_cnt = max_cnt
-        self.split_manifest_dir = split_manifest_dir
+        self.split_manifest_dir = split_manifest_dir if split_manifest_dir is not None else self.download_dir
         self.meta_dir = meta_dir
         self.sep = sep
         self.clin_cols = clin_cols

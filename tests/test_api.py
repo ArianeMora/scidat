@@ -50,7 +50,7 @@ class TestAPI(unittest.TestCase):
         sample_file = meta_dir + 'sample_sheet.txt'
         manifest_file = meta_dir + 'manifest.tsv'
 
-        self.api = API(manifest_file, gdc_client, clinical_file, sample_file, download_dir=self.tmp_dir,
+        self.api = API(manifest_file, gdc_client, clinical_file, sample_file, self.tmp_dir, self.tmp_dir,
                             max_cnt=1, requires_lst=['counts', 'm450'])
 
     def tearDown(self):
@@ -63,9 +63,9 @@ class TestAPI(unittest.TestCase):
         files_post = os.listdir(self.tmp_dir)
 
         # Check file name
-        self.assertEqual(files_post[0], '001ae925-102c-4818-8eb0-c8d2e5726e7c')
+        self.assertEqual(files_post[0], 'd3f73c0f-d518-4e91-b038-a4360495ee27.htseq.counts.tsv')
         # Run the download check
-        download_status = self.api.download.check_downloads(self.data_dir + 'download_status.csv')
+        download_status = self.api.download.check_downloads(self.tmp_dir + 'download_status.csv')
         download_status.sort()
 
         # Check the download status was correctly assigned
@@ -75,7 +75,7 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(download_status[-1][5], 'True')
 
         # Check the file was written with the download status
-        self.assertEqual(os.path.exists(self.data_dir + 'download_status.csv'), True)
+        self.assertEqual(os.path.exists(self.tmp_dir + 'download_status.csv'), True)
 
     def test_download_mutation_data(self):
         # Here we want to download the mutation files
@@ -259,6 +259,9 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(cases[0], 'TCGA-A3-3308')
         self.assertEqual(len(cases), 2)
 
-        female_stage1 = self.api.get_cases_with_meta({'gender': ['female'], 'tumor_stage_num': [1, 2], 'project_id': ['TCGA-KIRP']})
-        female_stage4 = self.api.get_cases_with_meta({'gender': ['female'], 'tumor_stage_num': [3, 4], 'project_id': ['TCGA-KIRP']})
-
+        female_stage1 = self.api.get_cases_with_meta({'gender': ['female'], 'tumor_stage_num': [1, 2],
+                                                      'project_id': ['TCGA-KIRP']})
+        self.assertEqual(len(female_stage1), 0)
+        male_cases = self.api.get_cases_with_meta({'gender': ['male'], 'tumor_stage_num': [1, 2, 3, 4],
+                                                      'project_id': ['TCGA-KIRP']})
+        self.assertEqual(len(male_cases), 1)
