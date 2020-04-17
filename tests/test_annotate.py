@@ -37,7 +37,7 @@ class TestAnnotate(unittest.TestCase):
                 shutil.rmtree(self.tmp_dir)
             os.mkdir(self.tmp_dir)
         else:
-            self.tmp_dir = tempfile.mkdtemp(prefix='scidatannotate_tmp_')
+            self.tmp_dir = tempfile.mkdtemp(prefix='scidatannotate_tmp_') + '/'
 
         meta_dir = os.path.join(THIS_DIR, 'data/')
         clinical_file = meta_dir + 'clinical.txt'

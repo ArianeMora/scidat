@@ -36,7 +36,7 @@ class TestDownload(unittest.TestCase):
                 shutil.rmtree(self.tmp_dir)
             os.mkdir(self.tmp_dir)
         else:
-            self.tmp_dir = tempfile.mkdtemp(prefix='scidatannotate_tmp_')
+            self.tmp_dir = tempfile.mkdtemp(prefix='scidatannotate_tmp_') + '/'
         self.data_dir = os.path.join(THIS_DIR, 'data/')
         manifest_file = self.data_dir + 'manifest.tsv'
         gdc_client = self.data_dir + './gdc-client'

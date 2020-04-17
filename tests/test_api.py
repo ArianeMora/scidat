@@ -38,7 +38,7 @@ class TestAPI(unittest.TestCase):
                 shutil.rmtree(self.tmp_dir)
             os.mkdir(self.tmp_dir)
         else:
-            self.tmp_dir = tempfile.mkdtemp(prefix='scidatannotate_tmp_')
+            self.tmp_dir = tempfile.mkdtemp(prefix='scidatannotate_tmp_') + '/'
 
         # def __init__(self, manifest_file, gdc_client, clinical_file, sample_file, requires_lst=None, clin_cols=None,
         #                  max_cnt=100, sciutil=None, split_manifest_dir='.', download_dir='.', meta_dir='.', sep='_'):
