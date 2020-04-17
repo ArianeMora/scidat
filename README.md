@@ -1,4 +1,6 @@
 # Sci-dat: Download Annotate TCGA
+[![codecov.io](https://codecov.io/github/ArianeMora/scidat/coverage.svg?branch=master)](https://codecov.io/github/ArianeMora/scidat?branch=master)
+[![PyPI](https://img.shields.io/pypi/v/scidat)](https://pypi.org/project/scidat/)
 
 A package developed to enable the download an annotation of TCGA data from `https://portal.gdc.cancer.gov/`
 
