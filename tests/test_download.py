@@ -53,14 +53,17 @@ class TestDownload(unittest.TestCase):
         files_post = os.listdir(self.tmp_dir)
 
         # Check file name
-        self.assertEqual(files_post[0], '001ae925-102c-4818-8eb0-c8d2e5726e7c')
+        self.assertEqual('001ae925-102c-4818-8eb0-c8d2e5726e7c' in files_post, True)
 
     def test_check_downloads(self):
         # Save us from having to download them again
-        os.system(f'cp -r {self.data_dir}001ae925-102c-4818-8eb0-c8d2e5726e7c {self.tmp_dir}')
-        os.system(f'cp -r {self.data_dir}19601351-3c26-4293-b87d-97222cd64a19 {self.tmp_dir}')
-        self.download.copy_downloads_to_new_dir(self.tmp_dir)
+        if self.local:
+            os.system(f'cp -r {self.data_dir}001ae925-102c-4818-8eb0-c8d2e5726e7c {self.tmp_dir}')
+            os.system(f'cp -r {self.data_dir}19601351-3c26-4293-b87d-97222cd64a19 {self.tmp_dir}')
+        else:
+            self.download.download()
 
+        self.download.copy_downloads_to_new_dir(self.tmp_dir)
         # Run the download check
         download_status = self.download.check_downloads(self.data_dir + 'download_status.csv')
         download_status.sort()
@@ -76,8 +79,11 @@ class TestDownload(unittest.TestCase):
 
     def test_copy_downloads_to_new_dir(self):
         # Copy the files to the tmp dir
-        os.system(f'cp -r {self.data_dir}001ae925-102c-4818-8eb0-c8d2e5726e7c {self.tmp_dir}')
-        os.system(f'cp -r {self.data_dir}19601351-3c26-4293-b87d-97222cd64a19 {self.tmp_dir}')
+        if self.local:
+            os.system(f'cp -r {self.data_dir}001ae925-102c-4818-8eb0-c8d2e5726e7c {self.tmp_dir}')
+            os.system(f'cp -r {self.data_dir}19601351-3c26-4293-b87d-97222cd64a19 {self.tmp_dir}')
+        else:
+            self.download.download()
 
         files_pre = os.listdir(self.tmp_dir)
 
