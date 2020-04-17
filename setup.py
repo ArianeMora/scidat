@@ -39,14 +39,14 @@ setup(name='scidat',
           'Programming Language :: Python :: 3.8',
           'Topic :: Scientific/Engineering :: Bio-Informatics',
       ],
-      keywords='util',
+      keywords='annotation',
       packages=['scidat'],
       entry_points={
           'console_scripts': [
               'scidat = scidat.__main__:main'
           ]
       },
-      install_requires=['sciutil', 'pandas', 'numpy', 'pybiomart'],
+      install_requires=['sciutil', 'pandas', 'numpy', 'pybiomart', 'sciviso'],
       python_requires='>=3.6',
       data_files=[("", ["LICENSE"])]
       )

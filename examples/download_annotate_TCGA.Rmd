@@ -55,10 +55,10 @@ Setup the environment for using the scidat package in R. Here we need to do the 
 
   1. Install "reticulate": `https://rstudio.github.io/reticulate/`
   2. Install conda: `https://docs.conda.io/en/latest/miniconda.html` (use Python 3.7 version)
-  3. Once conda is installed go to your terminal and type: `conda create -n pyenv python=3.8`, this will create a new `environment`
-  4. Once that has installed, run the following: `source activate pyenv`
+  3. Once conda is installed go to your terminal and type: `conda create -n example python=3.8`, this will create a new `environment`
+  4. Once that has installed, run the following: `source activate example`
   5. Run `pip install scidat`, this will install all the packages we'll need!
-  3. Lastly, type: `where python` and copy that path into the `use_python("/Users/ariane/opt/miniconda3/envs/ml/bin/python")` below.
+  3. Lastly, type: `where python` and copy that path into the `use_python("~/opt/miniconda3/envs/ml/bin/python")` below.
 
 ```{r}
 # Install the package reticulate as this allows us to access python packages
@@ -68,7 +68,7 @@ library("reticulate")
 
 # Specify the version of python, to get this path type:
 # "where python" into your terminal
-use_python("/Users/ariane/opt/miniconda3/envs/ml/bin/python")
+use_python("~/opt/miniconda3/envs/example/bin/python")
 scidat <- import("scidat")
 sciutil <- import("sciutil")
 sciviso <- import ("sciviso")
@@ -89,8 +89,7 @@ Before running the script below you will need to make sure you have edited the p
 
 ```{r}
 # This should be a directory on your computer where you want to download the data
-#download_dir <- '~/Documents/TCGA_data_download_scidat/'
-project_dir <- '/Users/ariane/Documents/TCGA_data_download_scidat/'
+project_dir <- '~/Documents/TCGA_data_download_scidat/'
 
 # Files downloaded from TCGA
 manifest_file <- paste(project_dir, 'manifest.tsv', sep='')
@@ -264,7 +263,7 @@ boxplot <- sciviso$Boxplot(transformed_df, NULL, NULL)
 box_df <- boxplot$format_data_for_boxplot(transformed_df, c('NF2-MUT', 'MET-MUT'), "gene_id", list("FH"))
 
 # Now lets actually display it
-boxplot <- sciviso$Violinplot(box_df, "Conditions", "Values", "FH MUT and MET MUT", add_dots=TRUE)
+boxplot <- sciviso$Violinplot(box_df, "Conditions", "Values", "NF2 MUT and MET MUT", add_dots=TRUE)
 boxplot$plot()
 mpl$pyplot$show()
 
