@@ -29,7 +29,7 @@ class TestAPI(unittest.TestCase):
 
     def setUp(self):
         # Flag to set data to be local so we don't have to download them repeatedly. ToDo: Remove when publishing.
-        self.local = True
+        self.local = False
 
         if self.local:
             THIS_DIR = os.path.dirname(os.path.abspath(__file__))

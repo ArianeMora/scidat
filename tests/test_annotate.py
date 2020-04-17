@@ -29,7 +29,7 @@ class TestAnnotate(unittest.TestCase):
 
     def setUp(self):
         # Setup temp dir
-        self.local = True
+        self.local = False
         if self.local:
             THIS_DIR = os.path.dirname(os.path.abspath(__file__))
             self.tmp_dir = os.path.join(THIS_DIR, 'data/tmp/')
