@@ -239,7 +239,7 @@ log2_df_values <- function(columns, log2_df, raw_df, id_column, new_column_prefi
 
 filter_col <- 'ssm.consequence.0.transcript.gene.symbol'
 column_returned <- "case_id"
-genes_of_interest <- c('FH', 'SDHB', 'SDHA', 'SDHC', 'SDHD', 'MET', 'ATF4', 'CHAC1', 'PSAT1', 'NRF2', 'SLC7A11', 'CDKN1A')
+genes_of_interest <- c('FH', 'SHH', 'SOX2', 'NF2', 'MET')
 
 # Let's get cases that have any mutation on the NF2 gene
 nf2_mutations <- api$get_mutation_values_on_filter(column_returned, c('NF2'), filter_col)
@@ -325,7 +325,7 @@ Here we may have a hypothesis related to how a specific gene changes across mult
 
 filter_col <- 'ssm.consequence.0.transcript.gene.symbol'
 column_returned <- "case_id"
-genes_of_interest <- c('FH', 'MET', 'ATF4', 'CHAC1', 'PSAT1', 'NRF2', 'SLC7A11')
+genes_of_interest <- c('FH', 'SHH', 'SOX2', 'NF2', 'MET')
 # Now we have our genes we want these to be our x axis
 female_early_dict <- list('gender' = list('female'), 'tumor_stage_num' = c(1, 2), 'project_id' = list('TCGA-KIRP'))
 female_early <- api$get_cases_with_meta(female_early_dict)
@@ -375,6 +375,9 @@ So our null hypothesis is:
 For each gene with a mutation, there is no between the expression of females of late stage and early stage RCC in the KIRP dataset at the 0.05 level.
 
 ```{r}
+library("edgeR")
+library("tidyverse")
+
 # Get our data of interest, this will be females from the KIRP dataset from stages 1 and four
 male_dict <- list('gender' = list('male'), 'tumor_stage_num' = c(1, 2, 3, 4), 'project_id' = list('TCGA-KIRP'))
 male_cases <- api$get_cases_with_meta(male_dict)
@@ -392,8 +395,10 @@ api$u$save_df(values_columns_filtered_df[[3]], filename)
 
 #BiocManager::install("edgeR")
 countdata
-library("edgeR")
-library("tidyverse")
+
+# Used: https://ucdavis-bioinformatics-training.github.io/2018-June-RNA-Seq-Workshop/thursday/DE.html as an example, 
+# as with: https://gist.github.com/stephenturner/f60c1934405c127f09a6 as template
+
 # Now we could run a DE analysis! on these cases, since tehre seems to be a couple of KIRC and KIRP in here, 
 # Lets see if there are any DE genes between these two conditions, also lets filter our 
 
