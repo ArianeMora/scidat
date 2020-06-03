@@ -56,10 +56,11 @@ Setup the environment for using the scidat package in R. Here we need to do the 
   1. Install "reticulate": `https://rstudio.github.io/reticulate/`
   2. Install conda: `https://docs.conda.io/en/latest/miniconda.html` (use Python 3.7 version)
   3. Once conda is installed go to your terminal and type: `conda create -n example python=3.8`, this will create a new `environment`
-  4. Once that has installed, run the following: `source activate example`
-  5. Run `pip install scidat`, this will install all the packages we'll need!
-  3. Lastly, type: `where python` and copy that path into the `use_python("~/opt/miniconda3/envs/ml/bin/python")` below.
+  4. Once that has installed, run the following: `source activate tcgaenv`
+  5. Run `pip install scidat=1.0.1`, this will install all the packages we'll need!
+  3. Lastly, type: `where python` and copy that path into the `use_python("~/opt/miniconda3/envs/tcgaenv/bin/python")` below.
 
+For more information on the package see: https://github.com/ArianeMora/scidat 
 ```{r}
 # Install the package reticulate as this allows us to access python packages
 #install.packages("reticulate")
@@ -68,7 +69,7 @@ library("reticulate")
 
 # Specify the version of python, to get this path type:
 # "where python" into your terminal
-use_python("~/opt/miniconda3/envs/example/bin/python")
+use_python("~/opt/miniconda3/envs/tcgaenv/bin/python")
 scidat <- import("scidat")
 sciutil <- import("sciutil")
 sciviso <- import ("sciviso")
@@ -79,7 +80,7 @@ pd <- import ("pandas")
 
 ## Section 3: File download
 
-The script below assumes you have put the files from above in `~/Documents/TCGA_data_download_scidat/` and that your `gdc-client` is executable.
+The script below assumes you have put the files from above in `TCGA_data_download_scidat/` and that your `gdc-client` is executable (If you are on a windows machine you'll need to haev the windows GDC client selected --> (you can change this below!))
 
 If you are using a windows machine (or put your files in a different folder you'll need to rename that directory).
 
@@ -89,11 +90,18 @@ Before running the script below you will need to make sure you have edited the p
 
 ```{r}
 # This should be a directory on your computer where you want to download the data
-project_dir <- '~/Documents/TCGA_data_download_scidat/'
+project_dir <- 'TCGA_data_download_scidat/'
 
 # Files downloaded from TCGA
 manifest_file <- paste(project_dir, 'manifest.tsv', sep='')
-gdc_client <- paste(project_dir, './gdc-client', sep='')
+
+gdc_client <- paste(project_dir, './gdc-client', sep='') # This is for mac users
+# WINDOWS USERS UNCOMMENT THE LINE BELOW
+gdc_client <- paste(project_dir, './gdc-client.exe', sep='') # This is for mac users
+
+# UBUNTU USERS UNCOMMENT THE LINE BELOW
+#gdc_client <- paste(project_dir, './gdc-client-linux', sep='') # This is for mac users
+
 clinical_file <- paste(project_dir, 'clinical.tsv', sep='')
 sample_file <- paste(project_dir, 'gdc_sample_sheet.2020-04-16.tsv', sep='')
 manifest_file <- paste(project_dir, 'gdc_manifest_20200416_055430.txt', sep='')
@@ -115,7 +123,7 @@ You'll only need to run the following once! Also check the limits for the size o
 
 ```{r}
 # Only run this box if you havn't already downloaded the data
-# api$download_data_from_manifest()
+api$download_data_from_manifest()
 ```
 
 ## Section 3: Clinical information annotation
@@ -140,7 +148,7 @@ api$build_annotation()
 
 # Download the mutation data --> here we can pass only some case IDs or if we leave it empty we download all the 
 # mutation data for our cases.
-# api$download_mutation_data()
+api$download_mutation_data()
 
 ```
 
@@ -182,12 +190,13 @@ df = api$get_rna_df()
 # Now we might want to get some extra information about each gene (for example the gene name! Since TCGA gives us the ensembl IDs). We also download the go term ID amoung other things (such as the ID to map it to KEGG pathways :) )
 biomart <- sciutil$Biomart()
 
-# This is a file we want to save our annotations to, we only need to run this once but it's very useful
-gene_annotation_file <- paste(project_dir, "gene_info_20200416.tsv", sep="") # --> Use this if you haven't already created it: api$u$generate_label(c(project_dir, "gene_info"), ".tsv")
+# This is a file we want to save our annotations to, we only need to run this once but it's very useful!
+gene_annotation_file <- api$u$generate_label(c(project_dir, "gene_info"), ".tsv") #paste(project_dir, "gene_info.tsv", sep="") 
+# --> Use this if you haven't already created it: api$u$generate_label(c(project_dir, "gene_info"), ".tsv")
 
 # Here we're generating a gene annotation file from biomart, we could pass it a list of genes but we'll just download everything
 # for now we would replace the '' with c(gene_id1, gene_id2....) etc.
-#biomart$build_gene_info_file('hsapiens_gene_ensembl', '', project_dir)
+biomart$build_gene_info_file('hsapiens_gene_ensembl', '', project_dir)
 
 # Now we want to create the actual annotation dictionary
 biomart$build_gene_annot_dict(gene_annotation_file)
@@ -239,11 +248,11 @@ log2_df_values <- function(columns, log2_df, raw_df, id_column, new_column_prefi
 
 filter_col <- 'ssm.consequence.0.transcript.gene.symbol'
 column_returned <- "case_id"
-genes_of_interest <- c('FH', 'SHH', 'SOX2', 'NF2', 'MET')
+genes_of_interest <- c('FH', 'SHH', 'SOX2', 'MET', 'SDHA', 'SDHC', 'SDHD', 'MET', 'ATF4', 'CHAC1', 'PSAT1', 'NRF2')
 
 # Let's get cases that have any mutation on the NF2 gene
 nf2_mutations <- api$get_mutation_values_on_filter(column_returned, c('NF2'), filter_col)
-
+nf2_mutations
 # Lets make a dataframe using pandas
 transformed_df <- df['gene_id']
 values <- api$get_values_from_df(df, 'gene_id', nf2_mutations)
@@ -325,7 +334,7 @@ Here we may have a hypothesis related to how a specific gene changes across mult
 
 filter_col <- 'ssm.consequence.0.transcript.gene.symbol'
 column_returned <- "case_id"
-genes_of_interest <- c('FH', 'SHH', 'SOX2', 'NF2', 'MET')
+genes_of_interest <-c('FH', 'MET', 'ATF4', 'CHAC1', 'PSAT1', 'NRF2', 'SLC7A11')
 # Now we have our genes we want these to be our x axis
 female_early_dict <- list('gender' = list('female'), 'tumor_stage_num' = c(1, 2), 'project_id' = list('TCGA-KIRP'))
 female_early <- api$get_cases_with_meta(female_early_dict)
@@ -375,6 +384,9 @@ So our null hypothesis is:
 For each gene with a mutation, there is no between the expression of females of late stage and early stage RCC in the KIRP dataset at the 0.05 level.
 
 ```{r}
+# UNCOMMENT IF YOU HAVE ISSUES AND NEED TO INSTALL THESE
+#BiocManager::install("edgeR")
+#BiocManager::install("tidyverse")
 library("edgeR")
 library("tidyverse")
 
@@ -393,8 +405,7 @@ values_columns_filtered_df <- api$get_values_from_df(df, 'gene_id', male_cases, 
 filename <- api$u$generate_label(c(project_dir, "female_kirp"), ".csv")
 api$u$save_df(values_columns_filtered_df[[3]], filename)
 
-#BiocManager::install("edgeR")
-countdata
+
 
 # Used: https://ucdavis-bioinformatics-training.github.io/2018-June-RNA-Seq-Workshop/thursday/DE.html as an example, 
 # as with: https://gist.github.com/stephenturner/f60c1934405c127f09a6 as template
@@ -433,7 +444,7 @@ project <- sapply(split_names, function(x){x[[1]]})
 gender <- sapply(split_names, function(x){x[[3]]})
 race <- sapply(split_names, function(x){x[[4]]})
 tumour_stage <- sapply(split_names, function(x){x[[5]]})
-
+sample_type
 # Now we're intersted in tumour stage and race
 group <- interaction(project, tumour_stage)
 

@@ -270,7 +270,7 @@ class Download:
                         download_status.append(line + ['True'])
                         success.append(line[1])
         if len(fail) == 0:
-            self.dp(["Successfully downloaded all files: no.", len(success)])
+            self.u.dp(["Successfully downloaded all files: no.", len(success)])
         else:
             self.u.err_p(["\tSuccessfully downloaded: ", len(success), '\n', "Failed: ", len(fail), '\n\nFailed Files:\n' + '\n'.join(fail)])
 

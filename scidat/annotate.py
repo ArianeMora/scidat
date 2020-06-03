@@ -39,10 +39,11 @@ class Annotate:
         self.clinical_file = clinical_file
         self.sample_file = sample_file
         self.manifest_file = manifest_file
-        self.file_types = file_types
+        self.file_types = file_types if file_types is not None else ['450', 'counts']
         if clin_cols is None:
-            clin_cols = ['submitter_id', 'project_id', 'age_at_index', 'gender', 'race', 'vital_status', 'tumor_stage']
-        self.annotation_cols = ['case_files', 'tumor_stage_num', 'race', 'gender', 'project_id']
+            clin_cols = ['submitter_id', 'project_id', 'age_at_index', 'gender', 'race', 'vital_status',
+                         'tumor_stage', 'days_to_death']
+        self.annotation_cols = ['case_files', 'tumor_stage_num', 'race', 'gender', 'project_id', 'days_to_death']
         self.clin_cols = clin_cols
         self.clin_df = None
         self.mutation_df = None
@@ -84,14 +85,15 @@ class Annotate:
         case_ids = self.sample_df['Case ID'].values
         files = self.sample_df['File Name'].values
         project_ids = self.sample_df['Project ID'].values
+        file_ids = self.sample_df['File ID'].values
         i = 0
         for f in files:
             # At this point we could filter but it is assumed that the data was pre-filtered by the user
             # prior to downloading the manifest
             case_id = project_ids[i] + '_' + case_ids[i]
-            file_dict[f] = {'case_id': case_id, 'sample_type': sample_types[i]}
+            file_dict[f] = {'case_id': case_id, 'sample_type': sample_types[i], 'submitter_id': case_ids[i],
+                            'file_id': file_ids[i]}
             case_to_file[case_id].append(f)
-
             i += 1
         return file_dict, case_to_file
 
@@ -152,16 +154,23 @@ class Annotate:
                     self.annotated_file_dict[f][c] = value[i]
                     i += 1
         # Now lets build our new column dictionary
+        cases = ['TCGA-BQ-7059']
         for filename, meta in self.annotated_file_dict.items():
             file_type = None
-            for ft in self.file_types:
-                if ft in filename:
-                    file_type = ft
+            if 'htseq.counts.gz' in filename:
+                file_type = 'htseq.counts'
+            elif 'HumanMethylation450' in filename:
+                file_type = 'HumanMethylation450'
+            else:
+                print("FILETYPE NOT FOUND", filename)
             # ToDo: Update this --> won't work with user specified annotation columns
             # ToDo: WARN: Must have the case_id as the last element
             label = f'{meta["project_id"]}{self.sep}{meta["sample_type"]}{self.sep}{meta["gender"]}{self.sep}' \
-                    f'{meta["race"]}{self.sep}{meta["tumor_stage_num"]}{self.sep}{file_type}' \
-                    f'{self.sep}{meta["case_id"]}'
+                    f'{meta["race"]}{self.sep}{meta["tumor_stage_num"]}{self.sep}{file_type}{self.sep}' \
+                    f'{meta["days_to_death"]}{self.sep}{meta["case_id"]}{self.sep}{meta["file_id"]}'
+            for c in cases:
+                if c in label:
+                    print(meta, filename)
             # Remove any spaces from the label
             self.annotated_file_dict[filename]['label'] = label.replace(' ', '')
 

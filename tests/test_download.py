@@ -112,3 +112,4 @@ class TestDownload(unittest.TestCase):
                 overlap += 1
         # There should only be two files with mutation data
         self.assertEqual(overlap, len(labels) - 2)
+

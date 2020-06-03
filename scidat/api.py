@@ -318,7 +318,7 @@ class API:
         for c in df.columns:
             for case in case_ids:
                 # ToDo: WARN this won't be stable if we let users choose their own format for the filenames
-                if case == c.split(self.sep)[-1]:
+                if case in c: # == c.split(self.sep)[-1]:
                     columns.append(c)
                     break
         # Lets check if we also have a column requirement
@@ -364,7 +364,7 @@ class API:
         self.u.err_p([msg])
         raise APIException(msg)
 
-    def get_cases_with_meta(self, meta: dict, method="all") -> list:
+    def get_files_with_meta(self, meta: dict, method="all") -> list:
         """
         Here we want to allow the user to specify some dictionary of metadata and retrieve all the cases with that data
         for example: gender: ["male"], race: ["white", "asian"], status:["dead"]
@@ -377,26 +377,29 @@ class API:
         -------
 
         """
-        cases_lst = []
+        files_lst = []
         if self.annotate.annotated_file_dict is None:
             msg = self.u.msg.msg_data_gen("get_cases_with_meta", "annotate.clinical_df", ["build_annotation"])
             self.u.err_p([msg])
             raise APIException(msg)
 
-        for key, values in meta.items():
-            if not isinstance(values, list):
-                msg = self.u.msg.msg_data_type("get_cases_with_meta", values, "list")
-                self.u.err_p([msg])
-                raise APIException(msg)
+        for filename, case in self.annotate.annotated_file_dict.items():
+            count_meeting_req = 0
+            for key, values in meta.items():
+                if not isinstance(values, list):
+                    msg = self.u.msg.msg_data_type("get_cases_with_meta", values, "list")
+                    self.u.err_p([msg])
+                    raise APIException(msg)
+                if case[key] in values:
+                    if method == 'any':
+                        files_lst.append(case['label'])
+                        break
+                    else:
+                        count_meeting_req += 1
+            if method == 'all' and count_meeting_req == len(meta):
+                files_lst.append(case['label'])
 
-            cases_lst.append(list(set(self.annotate.clin_df['submitter_id'][self.annotate.clin_df[key].isin(values)])))
-
-        if method == "all":
-            return list(reduce(set.intersection, [set(item) for item in cases_lst]))
-
-        elif method == "any":
-            # Otherwise just return all the cases that had any of those metadata
-            return list(set([item for sublist in cases_lst for item in sublist]))
+        return list(set(files_lst))
 
     def get_merged_rna_meth_df(self, case_ids=None) -> pd.DataFrame:
         """
