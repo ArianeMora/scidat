@@ -30,16 +30,6 @@ import numpy as np
 
 import os
 
-meta_dir = '/Users/ariane/Documents/data/tcga/kidney/'
-output_folder = '/Users/ariane/Documents/code/scivae_paper/data/rcc_datasets/'
-manifest_file = f'{meta_dir}gdc_manifest_20200416_055430.txt'
-gdc_client = f'{meta_dir}./gdc-client'
-download_dir = f'{meta_dir}downloads/'
-
-clinical_file = f'{meta_dir}clinical.tsv'
-sample_file = f'{meta_dir}gdc_sample_sheet.2020-04-07.tsv'
-processed_dir = f'{meta_dir}processed/'
-
 
 class TestAPI(unittest.TestCase):
 
@@ -281,3 +271,5 @@ class TestAPI(unittest.TestCase):
         male_cases = self.api.get_files_with_meta({'gender': ['male'], 'tumor_stage_num': [1, 2, 3, 4],
                                                       'project_id': ['TCGA-KIRP']})
         self.assertEqual(len(male_cases), 1)
+
+
