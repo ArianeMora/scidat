@@ -4,6 +4,10 @@
 
 A package developed to enable the download an annotation of TCGA data from `https://portal.gdc.cancer.gov/`
 
+## Docs
+
+https://arianemora.github.io/scidat/ 
+
 ## Install
 
 ```

@@ -18,7 +18,7 @@
 __title__ = 'scidat'
 __description__ = 'Download-Annotate-TCGA: Facilitates the download of data and annotation with metadata from TCGA'
 __url__ = 'https://github.com/ArianeMora/tcga-format.git'
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 __author__ = 'Ariane Mora'
 __author_email__ = 'ariane.n.mora@gmail.com'
 __license__ = 'GPL3'
