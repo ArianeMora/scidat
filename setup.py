@@ -46,11 +46,10 @@ setup(name='scidat',
               'scidat = scidat.__main__:main'
           ]
       },
-      install_requires=['sciutil', 'pandas', 'numpy', 'pybiomart', 'sciviso'],
+      install_requires=['sciutil', 'pandas', 'numpy', 'scibiomart', 'sciviso'],
       python_requires='>=3.6',
       data_files=[("", ['LICENSE', 'tests/data/d3f73c0f-d518-4e91-b038-a4360495ee27.htseq.counts.tsv',
-                        'tests/data/jhu-usc.edu_KIRC.HumanMethylation450.6.lvl-3.'
-                        'TCGA-CZ-5989-01A-11D-1670-05.gdc_hg38.txt',
+                        'tests/data/jhu-usc.edu_KIRC.HumanMethylation450.6.lvl-3.TCGA-CZ-5989-01A-11D-1670-05.gdc_hg38.txt',
                         'tests/data/clinical.txt', 'tests/data/sample_sheet.txt',
                         'tests/data/mutation_TCGA-KN-8422_20200410.tsv', 'tests/data/manifest.tsv',
                         'tests/data/gdc-client', 'tests/data/mutation_TCGA-A3-3308_20200410.tsv'])]

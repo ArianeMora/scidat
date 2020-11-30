@@ -18,7 +18,6 @@ from sciutil import SciUtil, SciException
 from scidat import Download
 from scidat import Annotate
 
-from functools import reduce
 import time
 from typing import Tuple
 import pandas as pd
@@ -37,8 +36,13 @@ class API:
     helpful interfaces that query between the data-structures.
     """
 
-    def __init__(self, manifest_file, gdc_client, clinical_file, sample_file, download_dir, meta_dir, requires_lst=None, clin_cols=None,
+    def __init__(self, manifest_file, gdc_client, clinical_file, sample_file, download_dir, meta_dir,
+                 annotation_file: str, requires_lst=None, clin_cols=None,
                  max_cnt=100, sciutil=None, split_manifest_dir=None, sep='_'):
+        if gdc_client and '.exe' in gdc_client:
+            self.file_type = 'windows'
+        else:
+            self.file_type = 'unix'
         self.mutation_file_dir = None
         self.u = SciUtil() if not sciutil else sciutil
         self.download_dir = download_dir
@@ -55,10 +59,29 @@ class API:
         self.rna_df = None
         self.meth_df = None
         self.rna_meth_df = None
+        self.annotation_file = annotation_file
+        self.setup_paths()
+        self.annotation_df = pd.read_csv(self.annotation_file)
+        self.annotation_df.set_index('ensembl_gene_id', inplace=True)
         self.download = Download(self.manifest_file, self.split_manifest_dir, self.download_dir, self.gdc_client,
                                  self.max_cnt, self.u)
         self.annotate = Annotate(self.meta_dir, self.clinical_file, self.sample_file, self.manifest_file,
                                  self.requires_lst, self.sep, self.clin_cols, self.u)
+
+    def add_windows_slash(self, change_str):
+        if change_str and '/' in change_str and (self.file_type == 'windows' or 'C:' in change_str):
+            return change_str.replace('/', '\\')
+        return change_str
+
+    def setup_paths(self):
+        self.meta_dir = self.add_windows_slash(self.meta_dir)
+        self.download_dir = self.add_windows_slash(self.download_dir)
+        self.split_manifest_dir = self.add_windows_slash(self.split_manifest_dir)
+        self.gdc_client = self.add_windows_slash(self.gdc_client)
+        self.clinical_file = self.add_windows_slash(self.clinical_file)
+        self.sample_file = self.add_windows_slash(self.sample_file)
+        self.manifest_file = self.add_windows_slash(self.manifest_file)
+        self.annotation_file = self.add_windows_slash(self.annotation_file)
 
     def download_data_from_manifest(self):
         self.download.download()
@@ -127,7 +150,7 @@ class API:
                 self.u.warn_p(["Unable to process: ", f])
         self.rna_df = df
 
-    def minify_meth_files(self, processed_dir=None, cpg_min_dir=None):
+    def minify_meth_files(self, processed_dir=None, cpg_min_dir=None, beta_cutoff=0.5):
         cpg_min_dir = cpg_min_dir if cpg_min_dir is not None else self.download_dir
         processed_dir = processed_dir if processed_dir is not None else self.download_dir
 
@@ -138,57 +161,25 @@ class API:
             if 'HumanMethylation450' in f and 'min' not in f and '.DS' not in f:
                 cpg_files.append(f)
 
-        cpg_to_gene = {}
-
         for f in cpg_files:
             print(f)
             try:
-                dups = []
-                idx_dict = {}
                 df_tmp = pd.read_csv(processed_dir + f, sep='\t')
                 i = 0
-                beta_values = df_tmp['Beta_value'].values
-                cpg_ids = df_tmp['Composite Element REF'].values
-                for t in df_tmp['Gene_Symbol'].values:
-                    transcripts = t.split(';')
-                    beta_value = beta_values[i]
-                    cpg_id = cpg_ids[i]
-                    for transcript in transcripts:
-                        # We want to keep track of the CPG ids so that we can map between them
-                        if cpg_to_gene.get(cpg_id):
-                            if transcript not in cpg_to_gene.get(cpg_id):
-                                cpg_to_gene[cpg_id].append(transcript)
-                        else:
-                            cpg_to_gene[cpg_id] = [transcript]
-                        if idx_dict.get(transcript):
-                            if beta_value not in idx_dict[transcript]:
-                                dups.append(transcript)
-                            else:
-                                idx_dict[transcript].append(beta_value)
-                        else:
-                            idx_dict[transcript] = [beta_value]
-
-                    i += 1
-
-                # We need to go through our dictionary and we'll only keep the maximum methylation value
-                transcript_rows = []
-                beta_rows = []
-                for transcript, beta_values in idx_dict.items():
-                    max_beta = 0
-                    for b in beta_values:
-                        if b > max_beta:
-                            max_beta = b
-                    transcript_rows.append(transcript)
-                    beta_rows.append(max_beta)
+                gene_symbols = []
+                for g in df_tmp['Gene_Symbol'].values:
+                    gene_symbols.append(g.split(';')[0])
 
                 meth_df = pd.DataFrame()
-                meth_df['id'] = transcript_rows
-                meth_df[f] = beta_rows
+                meth_df['Composite Element REF'] = df_tmp['Composite Element REF'].values
+                meth_df['external_gene_name'] = gene_symbols
+                meth_df['beta_value'] = df_tmp['Beta_value'].values
                 meth_df.to_csv(cpg_min_dir + f, index=False)
             except Exception as e:
                 self.u.err_p([f, e])
 
-    def build_meth_df(self, cpg_min_dir: str, df=None, drop_empty_rows=False, join_id='gene_id') -> None:
+    def build_meth_df(self, cpg_min_dir: str, df=None, drop_empty_rows=False, join_id='external_gene_name',
+                      meth_id='external_gene_name') -> None:
         """
         Here we build a dataframe based on the methylation data, we can add it to an existing dataframe
         and just join on the columns or create a new dataframe. Here we also choose whether to keep empty rows or only
@@ -216,26 +207,55 @@ class API:
                 cpg_files.append(f)
 
         start_idx = 0
-        if df is None and len(cpg_files) > 0:
-            df = pd.read_csv(cpg_min_dir + cpg_files[0])
-            name = self.annotate.annotated_file_dict[cpg_files[0]]['label']
-            df.columns = ['id', name]
-            start_idx = 1
-
+        files_parsed = []
+        cpg_to_genes = {}
+        cpg_to_beta = {}
         for f in cpg_files[start_idx:]:
             try:
                 df_tmp = pd.read_csv(cpg_min_dir + f)
                 name = self.annotate.annotated_file_dict[f]['label']
-                df_tmp.columns = ['id', name]
-
-                df = df.join(df_tmp.set_index('id'), on=join_id)
+                df_tmp.columns = ['Composite Element REF', meth_id, name]
+                gene_names = df_tmp[meth_id].values
+                beta_values = df_tmp[name].values
+                # Build dict from each one
+                for i, cpg in enumerate(df_tmp['Composite Element REF'].values):
+                    # Don't keep cpgs that don't have gene names
+                    if gene_names[i] != '.':
+                        if cpg_to_genes.get(cpg) == None:
+                            cpg_to_genes[cpg] = gene_names[i]
+                            cpg_to_beta[cpg] = {}
+                        if cpg_to_genes.get(cpg) != gene_names[i]:
+                            self.u.warn_p(['WARN mismatch between gene names for same CpG: ', cpg, gene_names[i],
+                                           cpg_to_genes.get(cpg)])
+                        cpg_to_beta[cpg][name] = beta_values[i]
+                files_parsed.append(name)
             except Exception as e:
-                print(e)
+                self.u.warn_p(['WARNING: minify meth files, unable to parse: ', f,
+                               '\nIs this file missisng from your sample or clinical file?'])
+        df = pd.DataFrame()
+        # Now we want to build the df with each of our columns for the beta values and the gene names should be
+        # always the same
+        f_betas = {}
+        gene_names = []
+        cpgs = []
+        for cpg, beta_vals in cpg_to_beta.items():
+            for f in files_parsed:
+                if not f_betas.get(f):
+                    f_betas[f] = []
+                f_betas[f].append(beta_vals.get(f))
+            gene_names.append(cpg_to_genes.get(cpg))
+            cpgs.append(cpg)
+        df['cpg-id'] = cpgs
+        df[join_id] = gene_names
+        for f, vals in f_betas.items():
+            df[f] = vals
+
         if drop_empty_rows:
             df = df.dropna()
         self.meth_df = df
 
-    def merge_rna_meth_values(self, meth_df: pd.DataFrame, rna_df: pd.DataFrame, index_col='id', merge_col='gene_id') -> pd.DataFrame:
+    def merge_rna_meth_values(self, meth_df: pd.DataFrame, rna_df: pd.DataFrame, index_col='external_gene_name',
+                              merge_col='external_gene_name') -> pd.DataFrame:
         self.rna_meth_df = rna_df.join(meth_df.set_index(index_col), on=merge_col)
         return self.rna_meth_df
 
@@ -263,6 +283,141 @@ class API:
             column = 'ssm.consequence.0.transcript.gene.symbol'
         return self.get_mutation_values_on_filter(column, case_ids, 'case_id')
 
+    def get_mutations_for_specific_gene(self, column: str, filter_values: list, filter_column: str, gene: str,
+                                        id_type='symbol')\
+            -> list:
+        gene_column = 'ssm.consequence.0.transcript.gene.gene_id'
+        if id_type == 'symbol':
+            gene_column = 'ssm.consequence.0.transcript.gene.symbol'
+        # Throws an annotation API exception if the mutation df hasn't been created.
+        mutation_df = self.annotate.get_mutation_df()
+        genes = mutation_df[gene_column].values
+        # Otherwise we need to filter by gene ids
+        idxs = []
+        i = 0
+        for value in mutation_df[filter_column].values:
+            found = False
+            for f in filter_values:
+                if isinstance(value, str) and f in value:
+                    found = True
+                    break
+
+            if genes[i] == gene and found:
+                idxs.append(i)
+            i += 1
+        if column is None:
+            return idxs
+
+        return list(set(mutation_df[column].values[idxs]))
+
+    @staticmethod
+    def get_columns_without_cases(df: pd.DataFrame, cases: list) -> list:
+        """
+        Here we want to return the columns without the cases in it, this enables us to have a "control" group.
+
+        Parameters
+        ----------
+        df
+        cases
+
+        Returns
+        -------
+
+        """
+        columns = []
+        for c in df.columns:
+            found = False
+            for case in cases:
+                if case in c:
+                    found = True
+                    break
+            if not found:
+                columns.append(c)
+        return columns
+
+    def filter_columns_on_gene_value(self, df: pd.DataFrame, gene_id: str, id_column: str,
+                                   cutoff_value: float, method: str, ensembl_id=True) -> list:
+        """
+        Returns the cases that have the gene value
+        Parameters
+        ----------
+        gene_id
+        cutoff_value
+        method
+
+        Returns
+        -------
+
+        """
+        if method not in ['greater', 'less']:
+            self.u.err_p([f'ARG ERROR: filter_cases_on_gene_value, you passed: {method}, but value must be one of: ',
+                          ','.join(['greater', 'less'])])
+            raise APIException(f'ARG ERROR: filter_cases_on_gene_value, you passed: {method}, but value must'
+                               f' be one of:{",".join(["greater", "less"])}')
+        gene_idx = None
+        i = 0
+        for g in df[id_column].values:
+            if ensembl_id:
+                # Removes the last tag.
+                g = g.split('.')[0]
+            if g == gene_id:
+                gene_idx = i
+                break
+            i += 1
+        if gene_idx is None:
+            self.u.err_p([f'Gene {gene_id} not found. Please check your gene id column {id_column} is correct. If you'
+                          f' have an ensembl ID make sure you select ensembl_id=True if you dont want the .X, '
+                          f'set ensembl_id=Flase if you want to check versions as well.'])
+            return
+        values = df.values[gene_idx]
+        c_i = 0
+        columns = []
+        if method == 'less':
+            for c in df.columns:
+                if c != gene_id:
+                    if values[c_i] < cutoff_value:
+                        columns.append(c)
+                        break
+                c_i += 1
+        elif method == 'greater':
+            for c in df.columns:
+                if c != gene_id:
+                    if values[c_i] < cutoff_value:
+                        columns.append(c)
+                        break
+                c_i += 1
+        return columns
+
+    @staticmethod
+    def add_meta_to_cases(df: pd.DataFrame, cases: list, meta_str: str, alt_str=None, sep='_') -> pd.DataFrame:
+        """
+        Adds a meta tag to the end of the column
+        Parameters
+        ----------
+        df
+        cases
+        meta_str
+        sep
+
+        Returns
+        -------
+
+        """
+        new_df = pd.DataFrame()
+        for c in df.columns:
+            found = False
+            for case in cases:
+                if case in c:
+                    new_df[f'{c}{sep}{meta_str}'] = df[c].values
+                    found = True
+                    break
+            if not found:
+                if alt_str is not None:
+                    new_df[f'{c}{sep}{alt_str}'] = df[c].values
+                else:
+                    new_df[c] = df[c].values
+        return new_df
+
     def get_mutation_values_on_filter(self, column: str, filter_values: list, filter_column: str) -> list:
         # Throws an annotation API exception if the mutation df hasn't been created.
         mutation_df = self.annotate.get_mutation_df()
@@ -270,14 +425,52 @@ class API:
         if not filter_values or not filter_column:
             # Now we want to query the gene ID column:
             return list(set(mutation_df[column].values))
+
         # Otherwise we need to filter by gene ids
         idxs = []
         for value in mutation_df[filter_column].values:
-            if value in filter_values:
-                idxs.append(True)
-            else:
-                idxs.append(False)
+            found = False
+            for f in filter_values:
+                if isinstance(value, str) and f in value:
+                    found = True
+                    break
+            idxs.append(found)
+
+        if column is None:
+            return idxs
+
         return list(set(mutation_df[column].values[idxs]))
+
+    @staticmethod
+    def create_annotation_for_columns(df: pd.DataFrame, includes: list, new_annotation: list) -> list:
+        """
+        Makes it easy to create annotations for the columns based on annotations stored in the column name
+        Parameters
+        ----------
+        df
+        includes
+        new_annotation
+
+        Returns
+        -------
+
+        """
+        annotations = []
+        for c in df.columns:
+            i = 0
+            found = False
+            for value in includes:
+                if '_' in value and value in c:
+                    annotations.append(new_annotation[i])
+                    found = True
+                elif f'_{value}' in c:
+                    annotations.append(new_annotation[i])
+                    found = False
+                i += 1
+            if not found:
+                annotations.append('None')
+
+        return annotations
 
     def get_cases_with_mutations(self, gene_list=None, id_type='symbol') -> list:
         """
@@ -421,3 +614,20 @@ class API:
             return self.rna_meth_df[self.rna_meth_df['case_id'].isin(case_ids)]
 
         return self.rna_meth_df
+
+    def add_gene_metadata_to_df(self, df:pd.DataFrame, left_id='id', right_id='ensembl_gene_id'):
+        """ Adds gene name information to the RNAseq dataframe """
+        # We need to remove the '.' from the ensembl ids
+        ensembl_ids = []
+        for g in df[left_id].values:
+            ensembl_ids.append(g.split('.')[0])
+
+        df[right_id] = ensembl_ids
+        df.set_index(right_id, inplace=True)
+
+        joined_df = df.join(self.annotation_df, how='left', on=right_id)
+        return joined_df
+
+    def set_gene_annotation_file(self, filepath):
+        """ Set the annotation file to override the default. """
+        self.annotation_df = pd.read_csv(filepath)

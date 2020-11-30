@@ -16,7 +16,6 @@
 ###############################################################################
 
 import os
-import pandas as pd
 import shutil
 import tempfile
 import unittest

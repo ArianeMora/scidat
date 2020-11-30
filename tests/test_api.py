@@ -22,12 +22,6 @@ import shutil
 import tempfile
 import unittest
 
-from scidat import API
-from sciutil import Biomart
-
-import pandas as pd
-import numpy as np
-
 import os
 
 
@@ -44,6 +38,7 @@ class TestAPI(unittest.TestCase):
                 shutil.rmtree(self.tmp_dir)
             os.mkdir(self.tmp_dir)
         else:
+
             self.tmp_dir = tempfile.mkdtemp(prefix='scidatannotate_tmp_') + '/'
 
         # def __init__(self, manifest_file, gdc_client, clinical_file, sample_file, requires_lst=None, clin_cols=None,
@@ -54,8 +49,8 @@ class TestAPI(unittest.TestCase):
         clinical_file = self.data_dir + 'clinical.txt'
         sample_file = self.data_dir + 'sample_sheet.txt'
         manifest_file = self.data_dir + 'manifest.tsv'
-
-        self.api = API(manifest_file, gdc_client, clinical_file, sample_file, self.tmp_dir, self.tmp_dir,
+        annotation_file = self.data_dir + 'tcga_hsapiens_gene_ensembl-GRCh38.p13.csv'
+        self.api = API(manifest_file, gdc_client, clinical_file, sample_file, self.tmp_dir, self.tmp_dir, annotation_file,
                             max_cnt=1, requires_lst=['counts', 'm450'])
 
     def tearDown(self):
@@ -68,7 +63,7 @@ class TestAPI(unittest.TestCase):
         files_post = os.listdir(self.tmp_dir)
 
         # Check file name
-        self.assertEqual(files_post[0], 'd3f73c0f-d518-4e91-b038-a4360495ee27.htseq.counts.tsv')
+        self.assertTrue('d3f73c0f-d518-4e91-b038-a4360495ee27.htseq.counts.tsv' in files_post)
         # Run the download check
         download_status = self.api.download.check_downloads(self.tmp_dir + 'download_status.csv')
         download_status.sort()
@@ -120,8 +115,8 @@ class TestAPI(unittest.TestCase):
         # Lets now build it and run our tests
         self.api.build_rna_df()
         df = self.api.get_rna_df()
-        self.assertEqual("TCGA-KIRC_PrimaryTumor_male_asian_3_counts_TCGA-KIRC_TCGA-A3-3308", df.columns[1])
-        self.assertEqual(df['TCGA-KIRC_PrimaryTumor_male_asian_3_counts_TCGA-KIRC_TCGA-A3-3308'].values[3], 753)
+        self.assertEqual("TCGA-KIRC_PrimaryTumor_male_asian_3_htseq.counts_--_TCGA-KIRC_TCGA-A3-3308_001ae925-102c-4818-8eb0-c8d2e5726e7c", df.columns[1])
+        self.assertEqual(df['TCGA-KIRC_PrimaryTumor_male_asian_3_htseq.counts_--_TCGA-KIRC_TCGA-A3-3308_001ae925-102c-4818-8eb0-c8d2e5726e7c'].values[3], 753)
 
     def test_minify_meth_files(self):
         self.api.minify_meth_files(self.data_dir, self.tmp_dir)
@@ -154,25 +149,24 @@ class TestAPI(unittest.TestCase):
         df = self.api.get_rna_df()
 
         # Lets get annotation information from biomart, first we'll get the gene ids from the rnaseq df
-        bm = Biomart()
-        df = bm.build_add_metadata(df, 'hsapiens_gene_ensembl', 'id', self.tmp_dir)
+        df = self.api.add_gene_metadata_to_df(df)
         # Now we want to add our methylation data to our dataframe, here we're being very strict and dropping any null
         # rows
-        self.api.build_meth_df(self.tmp_dir, df, drop_empty_rows=True)
+        self.api.build_meth_df(self.tmp_dir, df, drop_empty_rows=False)
         meth_df = self.api.get_meth_df()
 
         # Let's now run some checks
-        self.assertEqual(len(meth_df), 5)
-        self.assertEqual(meth_df.values[0][2], 'TSPAN6')
-        self.assertEqual(meth_df.values[0][1], 2881)
-        self.assertEqual(meth_df.values[0][-1], 0.0617698530665544)
+        self.assertEqual(len(meth_df), 27)
+        self.assertEqual(meth_df.values[0][1], 'RBL2')
+        self.assertEqual(meth_df.values[0][2], 0.580063584183683)
+        self.assertEqual(str(meth_df.values[1][-1]), 'nan')
 
     def test_merge_rna_meth_values(self):
         # Run almost the same as above
         self.api.minify_meth_files(self.data_dir, self.tmp_dir)
         # Build annotation and then build the df again
         self.api.build_annotation()
-        self.api.build_meth_df(self.tmp_dir, join_id='id')
+        self.api.build_meth_df(self.tmp_dir)
         meth_df = self.api.get_meth_df()
 
         # build rnaseq df first then join the meth df
@@ -180,14 +174,13 @@ class TestAPI(unittest.TestCase):
         df = self.api.get_rna_df()
 
         # Lets get annotation information from biomart, first we'll get the gene ids from the rnaseq df
-        bm = Biomart()
-        df = bm.build_add_metadata(df, 'hsapiens_gene_ensembl', 'id', self.tmp_dir)
-        merged_df = self.api.merge_rna_meth_values(meth_df, df, index_col='id', merge_col='gene_id')
-
-        self.assertEqual(merged_df.values[1][2], 'TNMD')
+        df = self.api.add_gene_metadata_to_df(df)
+        merged_df = self.api.merge_rna_meth_values(meth_df, df, index_col='external_gene_name', merge_col='external_gene_name')
+        print(merged_df.values)
+        self.assertEqual(merged_df.values[1][3], 'TNMD')
         self.assertEqual(merged_df.values[1][1], 6)
 
-        self.assertEqual(merged_df.values[-1][2], 'CYP51A1')
+        self.assertEqual(merged_df.values[-1][3], 'CYP51A1')
         self.assertEqual(merged_df.values[-1][1], 132)
         self.assertEqual(merged_df.values[-1][-1], 0.935303719030208)
 
@@ -271,5 +264,3 @@ class TestAPI(unittest.TestCase):
         male_cases = self.api.get_files_with_meta({'gender': ['male'], 'tumor_stage_num': [1, 2, 3, 4],
                                                       'project_id': ['TCGA-KIRP']})
         self.assertEqual(len(male_cases), 1)
-
-

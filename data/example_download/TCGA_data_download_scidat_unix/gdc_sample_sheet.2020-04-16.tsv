@@ -1,0 +1,51 @@
+File ID	File Name	Data Category	Data Type	Project ID	Case ID	Sample ID	Sample Type
+661829b5-a067-467f-aa58-518c8f91bad9	61e5178d-86bc-4229-8a41-61401f71f64b.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-BQ-5877	TCGA-BQ-5877-01A	Primary Tumor
+0aa7c232-98e9-411e-a5a3-77dc841ce743	a05ad788-3f8e-4b01-9ddd-fd6643efc4c7.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-5P-A9JY	TCGA-5P-A9JY-01A	Primary Tumor
+8a8c6c6c-971a-4045-b04d-9325195a1598	7a3c64e7-98bc-4cbf-8a2a-0c3314d46ad2.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-BQ-5879	TCGA-BQ-5879-11A	Solid Tissue Normal
+b6a0c9ec-3294-4a27-84ca-b59183c3a737	66f56582-eab0-4192-9c2a-0029c343b815.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-A4-7585	TCGA-A4-7585-01A	Primary Tumor
+cf683af3-6dd7-4f28-be42-cbc1cecc560c	acf91e5b-fe69-4064-9a7f-eb4094c7ee62.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-UZ-A9PN	TCGA-UZ-A9PN-01A	Primary Tumor
+1aab1d57-ee85-4fdd-b857-b6f5a1a0b4e0	83d5c605-b415-4743-b4ec-e8a376b93250.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-F9-A4JJ	TCGA-F9-A4JJ-01A	Primary Tumor
+f2e4bbaa-ca21-41ee-b952-2cc915759193	278da268-fdbd-424d-8525-1b187a9687f5.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-J7-8537	TCGA-J7-8537-01A	Primary Tumor
+17167cb6-6fb5-46a8-b0ab-81818197ef81	e749c448-20fb-4732-b8ee-c74177485245.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-G7-A8LD	TCGA-G7-A8LD-01A	Primary Tumor
+42834b56-a059-4734-a00d-7d81da95d677	3472dc3a-cd09-4d60-b5b3-6f4537e868ee.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-P4-A5E8	TCGA-P4-A5E8-11A	Solid Tissue Normal
+2d012875-d00f-4fb0-9dcc-93b4d1380ab1	0b38743f-1a39-4653-8d59-02906a3316e1.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-G7-7501	TCGA-G7-7501-01A	Primary Tumor
+cac22389-dbad-4e6c-a5d8-4236e16f5d04	7836a97d-960a-40ea-a755-621cde382876.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-IA-A83W	TCGA-IA-A83W-01A	Primary Tumor
+cb2a2e91-d338-478e-88b8-8d415e2cc33d	a135ec85-bc99-4f95-9dd2-495d1d2d0b9e.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-BQ-5879	TCGA-BQ-5879-01A	Primary Tumor
+09aaceb1-ebe6-40ae-b094-44c809f2bd99	fd41f518-30f1-48fa-98c6-50562381e662.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-BQ-7049	TCGA-BQ-7049-01A	Primary Tumor
+2090055a-ea02-42c5-b6cd-21bf980c4700	061086d5-2a01-444b-83ac-f1397b184307.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-DZ-6133	TCGA-DZ-6133-11A	Solid Tissue Normal
+9f8ffa3d-846f-455b-859b-8da9bb426538	72c70900-f879-4519-8bc4-23483122c2e5.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-IA-A83S	TCGA-IA-A83S-01A	Primary Tumor
+535fd9f1-90b8-4a56-b073-028e78a50440	443181bc-6248-4f42-bf52-5557c9788d51.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-IA-A83T	TCGA-IA-A83T-01A	Primary Tumor
+ad01bd85-e843-4569-b28d-de19a16cf7a9	643a2bf7-bfb7-4057-9e98-0c5fb479d052.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-P4-AAVL	TCGA-P4-AAVL-01A	Primary Tumor
+dc84da0d-7545-44d6-9550-b3d8612b9836	49025bb6-3da7-4e27-b8a3-c3815ede80eb.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-G7-6789	TCGA-G7-6789-01A	Primary Tumor
+fe7c7519-b076-4f74-91ec-5818bd107499	29da0dc3-f4c4-44c0-b3b1-3209fccf4e57.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-A4-A5Y1	TCGA-A4-A5Y1-01A	Primary Tumor
+bd9f03f4-497e-4a08-87b5-e235ed4f6db3	42085a56-f0b6-4f59-9e73-d63d087e5fb4.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-AL-3468	TCGA-AL-3468-01A	Primary Tumor
+88613bbd-8a1a-47c9-aaa3-05d6eec9d64f	4f317009-8ba2-40aa-b795-9f4a91ceb982.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-P4-A5E8	TCGA-P4-A5E8-01A	Primary Tumor
+33a08ed2-be8f-4326-80ea-daa78a85ff24	84c8bf6a-73b4-4c31-b45a-842490f8662b.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-SX-A7SM	TCGA-SX-A7SM-01A	Primary Tumor
+8e994ca2-33c6-4ff3-9028-caaee46b93c9	e9cf91c3-db89-4855-9d40-d66f9fb49225.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-5P-A9K9	TCGA-5P-A9K9-01A	Primary Tumor
+33120866-dff5-41a1-b01f-195c1eb714ca	c108fd9d-d117-41fb-9b5d-5eff76751837.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-BQ-7045	TCGA-BQ-7045-01A	Primary Tumor
+46218c3d-5a37-4b18-b2cc-48ad7a809e73	88306ab3-264f-4e3f-8073-4d606b084ed2.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-A4-A57E	TCGA-A4-A57E-11A	Solid Tissue Normal
+8b156ccc-912e-439e-b385-bc3de875051a	8546cb8a-fa49-47a4-9881-5b001572ef8d.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-2Z-A9JS	TCGA-2Z-A9JS-01A	Primary Tumor
+43c07185-ae57-4880-a91b-6ce1c171151b	ece0fe94-ea0b-4d38-bd30-a6bf9c1f3367.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-UZ-A9PJ	TCGA-UZ-A9PJ-01A	Primary Tumor
+9aaed96d-bb86-43da-a1a2-29c6332e8104	bdc6620a-b937-45ba-b7c6-7939c6cda0e0.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-AL-A5DJ	TCGA-AL-A5DJ-01A	Primary Tumor
+eabefaf9-7166-4992-94ea-0d6a626a711d	1af1aa3f-8f7c-4b29-bf14-5427d5a87c0a.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-BQ-7058	TCGA-BQ-7058-01A	Primary Tumor
+1af6dc6c-abcf-4ba2-b530-6c0ba7aeefc4	362cf7cd-7408-43ba-8295-a6c72106170f.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-A4-A57E	TCGA-A4-A57E-01A	Primary Tumor
+3d48da99-164b-472c-b829-51d585c6d380	13918b1d-75f3-4195-83f2-cf64ab4359b9.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-P4-A5EA	TCGA-P4-A5EA-01A	Primary Tumor
+a95158ae-4982-48d4-9862-6a921ff080a4	c9b7c74e-b910-4dfb-8f71-5f3eeee5ff77.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-G7-6793	TCGA-G7-6793-01A	Primary Tumor
+3e907410-03b1-4ec8-9c14-4dfce21a66a6	b4436726-df11-410d-862e-aa54105a8c3e.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-AL-3466	TCGA-AL-3466-01A	Primary Tumor
+ce4e5770-3fb3-4f90-8a75-94da0f486558	be0ccd3b-6e6d-4720-978f-c0c5fa71d964.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-2Z-A9J7	TCGA-2Z-A9J7-01A	Primary Tumor
+a33d0318-a572-440a-8937-31a725085826	a8ec4173-263a-4cb7-bf85-ae68a1151eeb.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-BQ-5882	TCGA-BQ-5882-01A	Primary Tumor
+1a1156c4-262f-4bf3-90a4-3ecceb290b0d	97456616-34c1-4af3-9cb1-560d83cab0c5.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-BQ-7045	TCGA-BQ-7045-11A	Solid Tissue Normal
+4c6d8f98-fb7e-4fba-99d2-3b47bae7d0c7	3897dd46-34cb-4907-b8fa-3174cc1d2b40.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-BQ-5880	TCGA-BQ-5880-01A	Primary Tumor
+07f5638f-13f4-4781-842b-193027d57fa1	376b5370-e44b-47fa-b878-b48d6899e7a5.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-SX-A7SP	TCGA-SX-A7SP-01A	Primary Tumor
+d1c5a0b9-da3c-4ecf-b0bd-3e9b822449f0	49d22e23-102c-4ea4-84bc-215dd2e8002e.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-BQ-5882	TCGA-BQ-5882-11A	Solid Tissue Normal
+b3af0131-de1d-4797-a9bb-61449bc2b866	7c01e365-30b2-4020-a7e7-17dad20035c0.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-IA-A83V	TCGA-IA-A83V-01A	Primary Tumor
+a8813427-dfd6-416a-8a06-ffcad7cd4e16	ee6aaabb-4aa2-4578-bc14-27d311837005.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-UZ-A9PQ	TCGA-UZ-A9PQ-01A	Primary Tumor
+05d876a6-45a6-4cec-abfc-1fc9486dc4b4	7ffecc62-22a9-43fc-827f-151ebb62bc81.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-DZ-6133	TCGA-DZ-6133-01A	Primary Tumor
+7acf2f49-0f41-4536-ae6f-1e7786bb2a2c	40613946-9ae9-4893-bbc8-170a2a09ccda.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-BQ-5893	TCGA-BQ-5893-01A	Primary Tumor
+6599630c-662c-4837-9e7c-1e31b64c709a	cfd06ff6-87b9-4ad3-8ebf-3bb6299449a5.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-BQ-5877	TCGA-BQ-5877-11A	Solid Tissue Normal
+af8abcc4-729a-4b4c-a64a-69194e1ec2ae	f887d61a-bb90-4bfe-aa1f-1ff933fedcf0.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-B9-4113	TCGA-B9-4113-01A	Primary Tumor
+79fa6e88-27b6-4fc3-8575-1dd2e41931dd	08d405ce-f557-424b-bef3-7acd7aeb1f51.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-2Z-A9J3	TCGA-2Z-A9J3-01A	Primary Tumor
+81ab86c9-90d8-45e8-a5ea-ee7266d7fbdc	282d5085-1fdd-4040-af5d-35ac644e5235.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-BQ-5889	TCGA-BQ-5889-01A	Primary Tumor
+673c1e2d-0c69-4d2f-95bc-86a3b34134c2	b0af0420-90ea-4eb9-b224-514a59296b14.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-5P-A9K3	TCGA-5P-A9K3-01A	Primary Tumor
+6daad7b9-a9ce-4686-8c74-765c9d62db67	5ef7ffcb-1938-449a-a082-2b2b04adbafe.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-UZ-A9PU	TCGA-UZ-A9PU-01A	Primary Tumor
+ecb8fc36-5b2a-4552-88c5-babd4f71b9b0	16b0362f-9205-49dc-9e9e-8ec7a0ffcf88.htseq.counts.gz	Transcriptome Profiling	Gene Expression Quantification	TCGA-KIRP	TCGA-A4-7287	TCGA-A4-7287-01A	Primary Tumor

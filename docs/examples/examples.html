@@ -1,0 +1,719 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>R Tutorial &mdash; scidat 1.0.2 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script src="../_static/custom.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+<!--    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-84847737-2"></script>-->
+<!--    <script>-->
+<!--        window.dataLayer = window.dataLayer || [];-->
+
+<!--        function gtag() {-->
+<!--            dataLayer.push(arguments);-->
+<!--        }-->
+
+<!--        gtag('js', new Date());-->
+
+<!--        gtag('config', 'UA-84847737-2');-->
+<!--    </script>-->
+
+
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="CLI" href="cli.html" />
+    <link rel="prev" title="Installing sci-DAT" href="../installing/index.html" />
+ 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html">
+          
+
+          
+            
+            <img src="../_static/logo.svg" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about.html">sci-dat</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installing/index.html">Installing sci-DAT</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Running sci-dat</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">R Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#section-1-data-selection-and-metadata-download">Section 1: Data selection and metadata download</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#download">Download:</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#get-gdc-data-transfer-tool">Get GDC Data Transfer Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#section-2">Section 2:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#section-3-file-download">Section 3: File download</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#warning-downloading-potentially-lots-of-data">WARNING DOWNLOADING POTENTIALLY LOTS OF DATA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#section-3-clinical-information-annotation">Section 3: Clinical information annotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#section-4-annotation-with-mutation-data">Section 4: Annotation with mutation data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#if-we-have-already-downloaded-the-mutation-data-we-can-skip-to-this-bit-where-we-build-the-mutation-dataframe">If we have already downloaded the mutation data we can skip to this bit where we “build” the mutation dataframe</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#section-5-combining-our-data-and-getting-extra-metadata-for-each-gene">Section 5: Combining our data and getting extra metadata for each gene</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#section-6-the-fun-bit">Section 6: The fun bit!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-1-calculating-the-logfold-change-accross-2-conditions">Example 1: Calculating the logfold change accross 2 conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-2-looking-at-differences-across-genes-between-conditions">Example 2: Looking at differences across genes between conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-3-looking-at-genes-across-conditions">Example 3: Looking at genes across conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-4-running-differential-expression-on-two-conditions">Example 4: Running differential expression on two conditions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebook.html">Example using scidat: Download Annotate TCGA</a></li>
+</ul>
+<p class="caption"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Change log</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">scidat</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>R Tutorial</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            
+              <a href="https://github.com/arianemora/scidat/blob/master/docs_src/src/examples/examples.md" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="r-tutorial">
+<h1>R Tutorial<a class="headerlink" href="#r-tutorial" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="section-1-data-selection-and-metadata-download">
+<h2>Section 1: Data selection and metadata download<a class="headerlink" href="#section-1-data-selection-and-metadata-download" title="Permalink to this headline">¶</a></h2>
+<p>Download metatdata from TCGA.
+For this program to work you need to first go to: https://portal.gdc.cancer.gov/ and select the files to download.</p>
+<p>In this example, I chose my data by using the following steps:
+1. Navigate to <code class="docutils literal notranslate"><span class="pre">Exploration</span></code> tab
+2. Selected <code class="docutils literal notranslate"><span class="pre">kidney</span></code> as the Primary Site
+3. Selected <code class="docutils literal notranslate"><span class="pre">solid</span> <span class="pre">tissue</span> <span class="pre">normal</span></code> and <code class="docutils literal notranslate"><span class="pre">primary</span> <span class="pre">tumor</span></code> for my Sample Type (823 cases)
+4. Clicked <code class="docutils literal notranslate"><span class="pre">View</span> <span class="pre">Files</span> <span class="pre">in</span> <span class="pre">Repository</span></code>
+5. <strong>OPTIONAL</strong>: download the mutation information –&gt; select <code class="docutils literal notranslate"><span class="pre">Mutations</span></code> tab and click <code class="docutils literal notranslate"><span class="pre">JSON</span></code> to download mutation data</p>
+<p>Since I’m only interested in RNAseq count data and Methylation beta values, I filter my files to only include these two types of files.<br />6. Selected <code class="docutils literal notranslate"><span class="pre">RNA-seq</span></code> as my Experimental Strategy
+7. Selected <code class="docutils literal notranslate"><span class="pre">HTSeq</span> <span class="pre">-</span> <span class="pre">Counts</span></code> in Workflow Type
+8. Clicked <code class="docutils literal notranslate"><span class="pre">Add</span> <span class="pre">all</span> <span class="pre">files</span> <span class="pre">to</span> <span class="pre">cart</span></code> (945 files, 815 cases)
+9. Unselected <code class="docutils literal notranslate"><span class="pre">HTSeq</span> <span class="pre">-</span> <span class="pre">Counts</span></code> and unselected <code class="docutils literal notranslate"><span class="pre">RNA-seq</span></code>
+10. Selected <code class="docutils literal notranslate"><span class="pre">Methylation</span> <span class="pre">array</span></code> as my Experimental Strategy
+11. Selected <code class="docutils literal notranslate"><span class="pre">illumina</span> <span class="pre">human</span> <span class="pre">methylation</span> <span class="pre">450</span></code> in Platform
+12. Clicked <code class="docutils literal notranslate"><span class="pre">Add</span> <span class="pre">all</span> <span class="pre">files</span> <span class="pre">to</span> <span class="pre">cart</span></code> (832 files, 630 cases)</p>
+<p>Now I navigated to my cart which had 1777 files in it. Since it is recomended to use th GDC-data transfer tool (which scidat uses) I only download the <code class="docutils literal notranslate"><span class="pre">manifest</span></code> and the <code class="docutils literal notranslate"><span class="pre">metadata</span></code> for my files of interest.
+Before proceeding, look at how much space the files will need (e.g. for me this is 117GB) make sure the computer you are downloading on has that space available.</p>
+<div class="section" id="download">
+<h3>Download:<a class="headerlink" href="#download" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>13. `Biospecimen`
+14. `Clinical`
+15. `Sample Sheet`
+16. `Metadata`
+17. Click the `Download` button and select `Manifest`
+</pre></div>
+</div>
+<p>Lastly, move all these files to a new empty directory <code class="docutils literal notranslate"><span class="pre">~/Documents/TCGA_data_download_scidat/</span></code>.
+Unzip the <code class="docutils literal notranslate"><span class="pre">Clinical</span></code> folder and delete the zipped version.
+Make a new directory in <code class="docutils literal notranslate"><span class="pre">~/Documents/TCGA_data_download_scidat/</span></code> called <code class="docutils literal notranslate"><span class="pre">downloads</span></code> (we’ll use this below)</p>
+</div>
+</div>
+<div class="section" id="get-gdc-data-transfer-tool">
+<h2>Get GDC Data Transfer Tool<a class="headerlink" href="#get-gdc-data-transfer-tool" title="Permalink to this headline">¶</a></h2>
+<p>If you haven’t already got the GDC transfer tool, you’ll need to download this, follow the instructions from TCGA on how to do this:
+https://gdc.cancer.gov/access-data/gdc-data-transfer-tool</p>
+<p>Move the downloaded GDC transfer tool to the same directory you put your manifest file in i.e. <code class="docutils literal notranslate"><span class="pre">~/Documents/TCGA_data_download_scidat/</span></code> from before.
+Now we’re ready to download the files and annotate them with the data we downloaded.</p>
+</div>
+<div class="section" id="section-2">
+<h2>Section 2:<a class="headerlink" href="#section-2" title="Permalink to this headline">¶</a></h2>
+<p>Setup the environment for using the scidat package in R. Here we need to do the following:</p>
+<ol class="simple">
+<li><p>Install “reticulate”: <code class="docutils literal notranslate"><span class="pre">https://rstudio.github.io/reticulate/</span></code></p></li>
+<li><p>Install conda: <code class="docutils literal notranslate"><span class="pre">https://docs.conda.io/en/latest/miniconda.html</span></code> (use Python 3.7 version)</p></li>
+<li><p>Once conda is installed go to your terminal and type: <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">create</span> <span class="pre">-n</span> <span class="pre">example</span> <span class="pre">python=3.8</span></code>, this will create a new <code class="docutils literal notranslate"><span class="pre">environment</span></code></p></li>
+<li><p>Once that has installed, run the following: <code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">activate</span> <span class="pre">tcgaenv</span></code></p></li>
+<li><p>Run <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">scidat</span></code>, this will install all the packages we’ll need!</p></li>
+<li><p>Lastly, type: <code class="docutils literal notranslate"><span class="pre">where</span> <span class="pre">python</span></code> and copy that path into the <code class="docutils literal notranslate"><span class="pre">use_python(&quot;~/opt/miniconda3/envs/tcgaenv/bin/python&quot;)</span></code> below.</p></li>
+</ol>
+<p>For more information on the package see: https://github.com/ArianeMora/scidat</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install the package reticulate as this allows us to access python packages</span>
+<span class="c1">#install.packages(&quot;reticulate&quot;)</span>
+
+<span class="nf">library</span><span class="p">(</span><span class="s">&quot;reticulate&quot;</span><span class="p">)</span>
+
+<span class="c1"># Specify the version of python, to get this path type:</span>
+<span class="c1"># &quot;where python&quot; into your terminal</span>
+<span class="nf">use_python</span><span class="p">(</span><span class="s">&quot;~/opt/miniconda3/envs/tcgaenv/bin/python&quot;</span><span class="p">)</span>
+<span class="n">scidat</span> <span class="o">&lt;-</span> <span class="nf">import</span><span class="p">(</span><span class="s">&quot;scidat&quot;</span><span class="p">)</span>
+<span class="n">sciutil</span> <span class="o">&lt;-</span> <span class="nf">import</span><span class="p">(</span><span class="s">&quot;sciutil&quot;</span><span class="p">)</span>
+<span class="n">sciviso</span> <span class="o">&lt;-</span> <span class="nf">import </span><span class="p">(</span><span class="s">&quot;sciviso&quot;</span><span class="p">)</span>
+<span class="n">mpl</span> <span class="o">&lt;-</span> <span class="nf">import </span><span class="p">(</span><span class="s">&quot;matplotlib&quot;</span><span class="p">)</span>
+<span class="n">np</span> <span class="o">&lt;-</span> <span class="nf">import</span><span class="p">(</span><span class="s">&quot;numpy&quot;</span><span class="p">)</span>
+<span class="n">pd</span> <span class="o">&lt;-</span> <span class="nf">import </span><span class="p">(</span><span class="s">&quot;pandas&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="section-3-file-download">
+<h2>Section 3: File download<a class="headerlink" href="#section-3-file-download" title="Permalink to this headline">¶</a></h2>
+<p>The script below assumes you have put the files from above in <code class="docutils literal notranslate"><span class="pre">TCGA_data_download_scidat/</span></code> and that your <code class="docutils literal notranslate"><span class="pre">gdc-client</span></code> is executable (If you are on a windows machine you’ll need to haev the windows GDC client selected –&gt; (you can change this below!))</p>
+<p>If you are using a windows machine (or put your files in a different folder you’ll need to rename that directory).</p>
+<p>Before running the script below you will need to make sure you have edited the path to the manifest file, and the gdc_client to be located where you placed them on your computer and with their proper names
+(e.g.</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># This should be a directory on your computer where you want to download the data</span>
+<span class="n">project_dir</span> <span class="o">&lt;-</span> <span class="s">&#39;TCGA_data_download_scidat/&#39;</span>
+
+<span class="c1"># Files downloaded from TCGA</span>
+<span class="n">manifest_file</span> <span class="o">&lt;-</span> <span class="nf">paste</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="s">&#39;manifest.tsv&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+
+<span class="n">gdc_client</span> <span class="o">&lt;-</span> <span class="nf">paste</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="s">&#39;../data/example_download/TCGA_data_download_scidat_unix/gdc-client&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span> <span class="c1"># This is for mac users</span>
+<span class="c1"># WINDOWS USERS UNCOMMENT THE LINE BELOW</span>
+<span class="n">gdc_client</span> <span class="o">&lt;-</span> <span class="nf">paste</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="s">&#39;./gdc-client.exe&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span> <span class="c1"># This is for mac users</span>
+
+<span class="c1"># UBUNTU USERS UNCOMMENT THE LINE BELOW</span>
+<span class="c1">#gdc_client &lt;- paste(project_dir, &#39;./gdc-client-linux&#39;, sep=&#39;&#39;) # This is for mac users</span>
+
+<span class="n">clinical_file</span> <span class="o">&lt;-</span> <span class="nf">paste</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="s">&#39;clinical.tsv&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+<span class="n">sample_file</span> <span class="o">&lt;-</span> <span class="nf">paste</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="s">&#39;gdc_sample_sheet.2020-04-16.tsv&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+<span class="n">manifest_file</span> <span class="o">&lt;-</span> <span class="nf">paste</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="s">&#39;gdc_manifest_20200416_055430.txt&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+<span class="n">annotation_file</span> <span class="o">&lt;-</span> <span class="nf">paste</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="s">&#39;tcga_hsapiens_gene_ensembl-GRCh38.p13.csv&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+
+<span class="c1"># Directories that you&#39;ll need to create in the project diectory</span>
+<span class="n">download_dir</span> <span class="o">&lt;-</span> <span class="nf">paste</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="s">&#39;downloads/&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+
+<span class="c1"># scidat spits the manifest file into submanifests so that we can make multiple calls to TCGA simulateously.</span>
+<span class="c1"># This speeds up the download process. Note, it will use up more of your computers&#39; processing so if you are worried</span>
+<span class="c1"># just set the max_cnt to be more than the number of files in your manifest e.g. 100000000</span>
+<span class="n">api</span> <span class="o">&lt;-</span> <span class="n">scidat</span><span class="o">$</span><span class="nf">API</span><span class="p">(</span><span class="n">manifest_file</span><span class="p">,</span> <span class="n">gdc_client</span><span class="p">,</span> <span class="n">clinical_file</span><span class="p">,</span> <span class="n">sample_file</span><span class="p">,</span> <span class="n">annotation_file</span><span class="p">,</span> <span class="n">max_cnt</span><span class="o">=</span><span class="m">5</span><span class="p">,</span> <span class="n">split_manifest_dir</span><span class="o">=</span><span class="n">download_dir</span><span class="p">,</span> <span class="n">download_dir</span><span class="o">=</span><span class="n">download_dir</span><span class="p">,</span>
+          <span class="n">meta_dir</span><span class="o">=</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">&#39;_&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="warning-downloading-potentially-lots-of-data">
+<h2>WARNING DOWNLOADING POTENTIALLY LOTS OF DATA<a class="headerlink" href="#warning-downloading-potentially-lots-of-data" title="Permalink to this headline">¶</a></h2>
+<p>You’ll only need to run the following once! Also check the limits for the size of the data you want to download.</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># Only run this box if you havn&#39;t already downloaded the data</span>
+<span class="n">api</span><span class="o">$</span><span class="nf">download_data_from_manifest</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="section-3-clinical-information-annotation">
+<h2>Section 3: Clinical information annotation<a class="headerlink" href="#section-3-clinical-information-annotation" title="Permalink to this headline">¶</a></h2>
+<p>Here we are going to builld the clinical information dataframe.</p>
+<p>We’re also interested in the mutation data so we’re going to download the mutation data.</p>
+</div>
+<div class="section" id="section-4-annotation-with-mutation-data">
+<h2>Section 4: Annotation with mutation data<a class="headerlink" href="#section-4-annotation-with-mutation-data" title="Permalink to this headline">¶</a></h2>
+<p>Unfortunately TCGA doesn’t make it easy to add the mutation annotation data.</p>
+<p>If in <strong>Section 1</strong> you didn’t do the optional <em>step 5</em> please go back and download the mutation data as we need this to add the mutation information.</p>
+<p>How this section works is that we have the different mutations (the file we downloaded from <strong>Section 1</strong> has the mutation ID and the information about the specific mutation. Unfortunatly, this isn’t connected to a case (patient). In order to connect the mutation with the patient we need to call the API provided by TCGA (https://docs.gdc.cancer.gov/API/Users_Guide/Data_Analysis/#simple-somatic-mutation-endpoint-examples).</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># This section will take about 30 second to 1 min</span>
+
+<span class="c1"># Build the annotation</span>
+<span class="n">api</span><span class="o">$</span><span class="nf">build_annotation</span><span class="p">()</span>
+
+<span class="c1"># Download the mutation data --&gt; here we can pass only some case IDs or if we leave it empty we download all the </span>
+<span class="c1"># mutation data for our cases.</span>
+<span class="n">api</span><span class="o">$</span><span class="nf">download_mutation_data</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="section" id="if-we-have-already-downloaded-the-mutation-data-we-can-skip-to-this-bit-where-we-build-the-mutation-dataframe">
+<h3>If we have already downloaded the mutation data we can skip to this bit where we “build” the mutation dataframe<a class="headerlink" href="#if-we-have-already-downloaded-the-mutation-data-we-can-skip-to-this-bit-where-we-build-the-mutation-dataframe" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># First lets build the mutation DF</span>
+<span class="n">api</span><span class="o">$</span><span class="nf">build_mutation_df</span><span class="p">()</span>
+
+<span class="c1"># Lets get all the genes with mutations</span>
+<span class="n">genes</span> <span class="o">&lt;-</span> <span class="n">api</span><span class="o">$</span><span class="nf">get_genes_with_mutations</span><span class="p">()</span>
+
+<span class="c1"># How many genes have mutations?</span>
+<span class="nf">length</span><span class="p">(</span><span class="n">genes</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="section-5-combining-our-data-and-getting-extra-metadata-for-each-gene">
+<h2>Section 5: Combining our data and getting extra metadata for each gene<a class="headerlink" href="#section-5-combining-our-data-and-getting-extra-metadata-for-each-gene" title="Permalink to this headline">¶</a></h2>
+<p>First, we want to get some extra information about our data, for example we want to assign the gene names rather than the ENSEMBL ids that TCGA give you.</p>
+<p>To do this, we’ll be using the sciutil package which has a wrapper around biomart package.</p>
+<p>Once we have done this, we can now interact with the data!</p>
+<p>This section will take some time as we’re going to be downloading the annotation information from biomart.</p>
+<p>Note you won’t have to do this everytime! It will just be the first time when you are creating this reference file.</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># Build the RNAseq dataframe</span>
+<span class="n">api</span><span class="o">$</span><span class="nf">build_rna_df</span><span class="p">(</span><span class="n">download_dir</span><span class="p">)</span>
+<span class="n">df</span> <span class="o">&lt;-</span> <span class="n">api</span><span class="o">$</span><span class="nf">get_rna_df</span><span class="p">()</span>
+<span class="n">df</span> <span class="o">&lt;-</span> <span class="n">api</span><span class="o">$</span><span class="nf">add_gene_metadata_to_df</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="nf">NROW</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="section-6-the-fun-bit">
+<h2>Section 6: The fun bit!<a class="headerlink" href="#section-6-the-fun-bit" title="Permalink to this headline">¶</a></h2>
+<p>We’ve finally got to the fun bit! YAY! For this section we’ll be generating a coupld of plots as examples, and then displaying these.</p>
+<p>We can now run all sorts of fun things, we’ll start with some general stuff:</p>
+<ol class="simple">
+<li><p>Get all genes with mutations</p></li>
+<li><p>Get cases with specfic mutations</p></li>
+<li><p>Get the RNAseq for the cases with mutations</p></li>
+<li><p>Get RNAseq for cases with specific metadata (for example based on gender or demographic) or both</p></li>
+<li><p>We can add more in…</p></li>
+</ol>
+</div>
+<div class="section" id="example-1-calculating-the-logfold-change-accross-2-conditions">
+<h2>Example 1: Calculating the logfold change accross 2 conditions<a class="headerlink" href="#example-1-calculating-the-logfold-change-accross-2-conditions" title="Permalink to this headline">¶</a></h2>
+<p>Since the data from TCGA is just raw counts, we want to first normalise it. Usually I would use normalisations from DeSeq2, but for this tutorial we’ll just log transform counts + 1.</p>
+<p>Here we’ll pretend to be interested in how female KIRC and male KIRC samples differ. To do this, we’ll first calculate the log fold change between the two conditions. Then to see if there are any outlier genes, we’ll have a look at a volcano plot of the data.</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">log2_df_values</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">log2_df</span><span class="p">,</span> <span class="n">raw_df</span><span class="p">,</span> <span class="n">id_column</span><span class="p">,</span> <span class="n">new_column_prefix</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1"># Here we want to log2 the values in the columns that aren&#39;t the ID column</span>
+  <span class="c1"># we offset these with 1</span>
+  <span class="nf">for </span><span class="p">(</span><span class="n">i</span> <span class="n">in</span> <span class="nf">seq_along</span><span class="p">(</span><span class="n">columns</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">c</span> <span class="o">&lt;-</span> <span class="n">columns</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+      <span class="nf">if </span><span class="p">(</span><span class="n">c</span> <span class="o">!=</span> <span class="n">id_column</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">log2_df</span><span class="p">[[</span><span class="nf">paste</span><span class="p">(</span><span class="n">new_column_prefix</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)]]</span> <span class="o">&lt;-</span> <span class="nf">log2</span><span class="p">(</span><span class="n">raw_df</span><span class="p">[[</span><span class="n">c</span><span class="p">]]</span> <span class="o">+</span> <span class="n">offset</span><span class="p">)</span>
+      <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="nf">return</span><span class="p">(</span><span class="n">log2_df</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">filter_col</span> <span class="o">&lt;-</span> <span class="s">&#39;ssm.consequence.0.transcript.gene.symbol&#39;</span>
+<span class="n">column_returned</span> <span class="o">&lt;-</span> <span class="s">&quot;case_id&quot;</span>
+<span class="n">genes_of_interest</span> <span class="o">&lt;-</span> <span class="nf">c</span><span class="p">(</span><span class="s">&#39;SOX2&#39;</span><span class="p">,</span> <span class="s">&#39;P53&#39;</span><span class="p">,</span> <span class="s">&#39;MUC4&#39;</span><span class="p">,</span> <span class="s">&#39;ARL11&#39;</span><span class="p">)</span>
+
+<span class="c1"># Let&#39;s get cases that have any mutation on the NF2 gene</span>
+<span class="n">ARL11_mutations</span> <span class="o">&lt;-</span> <span class="n">api</span><span class="o">$</span><span class="nf">get_mutation_values_on_filter</span><span class="p">(</span><span class="n">column_returned</span><span class="p">,</span> <span class="nf">c</span><span class="p">(</span><span class="s">&#39;ARL11&#39;</span><span class="p">),</span> <span class="n">filter_col</span><span class="p">)</span>
+<span class="n">ARL11_mutations</span>
+<span class="c1"># Lets make a dataframe using pandas</span>
+<span class="n">transformed_df</span> <span class="o">&lt;-</span> <span class="n">df</span><span class="p">[</span><span class="s">&#39;gene_id&#39;</span><span class="p">]</span>
+<span class="n">values</span> <span class="o">&lt;-</span> <span class="n">api</span><span class="o">$</span><span class="nf">get_values_from_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s">&#39;gene_id&#39;</span><span class="p">,</span> <span class="n">ARL11_mutations</span><span class="p">)</span>
+<span class="n">filtered_df</span> <span class="o">&lt;-</span> <span class="n">values</span><span class="p">[[</span><span class="m">3</span><span class="p">]]</span>
+<span class="n">columns</span> <span class="o">&lt;-</span> <span class="n">values</span><span class="p">[[</span><span class="m">2</span><span class="p">]]</span>
+<span class="c1"># Lets log2 the values</span>
+<span class="n">transformed_df</span> <span class="o">&lt;-</span><span class="nf">log2_df_values</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">transformed_df</span><span class="p">,</span> <span class="n">filtered_df</span><span class="p">,</span> <span class="s">&#39;gene_id&#39;</span><span class="p">,</span> <span class="s">&#39;ARL11-MUT_&#39;</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span>
+
+<span class="n">met_mutations</span> <span class="o">&lt;-</span> <span class="n">api</span><span class="o">$</span><span class="nf">get_mutation_values_on_filter</span><span class="p">(</span><span class="n">column_returned</span><span class="p">,</span> <span class="nf">c</span><span class="p">(</span><span class="s">&#39;MUC4&#39;</span><span class="p">),</span> <span class="n">filter_col</span><span class="p">)</span>
+<span class="n">values</span> <span class="o">&lt;-</span> <span class="n">api</span><span class="o">$</span><span class="nf">get_values_from_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s">&#39;gene_id&#39;</span><span class="p">,</span> <span class="n">met_mutations</span><span class="p">)</span>
+<span class="n">filtered_df</span> <span class="o">&lt;-</span> <span class="n">values</span><span class="p">[[</span><span class="m">3</span><span class="p">]]</span>
+<span class="n">columns</span> <span class="o">&lt;-</span> <span class="n">values</span><span class="p">[[</span><span class="m">2</span><span class="p">]]</span>
+<span class="n">transformed_df</span> <span class="o">&lt;-</span><span class="nf">log2_df_values</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">transformed_df</span><span class="p">,</span> <span class="n">filtered_df</span><span class="p">,</span> <span class="s">&#39;gene_id&#39;</span><span class="p">,</span> <span class="s">&#39;MET-MUC4_&#39;</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span>
+
+<span class="c1"># Now lets calculate the changes between two conditions, let&#39;s go with KIRC vs KIRP</span>
+<span class="n">boxplot</span> <span class="o">&lt;-</span> <span class="n">sciviso</span><span class="o">$</span><span class="nf">Boxplot</span><span class="p">(</span><span class="n">transformed_df</span><span class="p">,</span> <span class="kc">NULL</span><span class="p">,</span> <span class="kc">NULL</span><span class="p">)</span>
+<span class="n">box_df</span> <span class="o">&lt;-</span> <span class="n">boxplot</span><span class="o">$</span><span class="nf">format_data_for_boxplot</span><span class="p">(</span><span class="n">transformed_df</span><span class="p">,</span> <span class="nf">c</span><span class="p">(</span><span class="s">&#39;ARL11-MUT&#39;</span><span class="p">,</span> <span class="s">&#39;MUC4-MUT&#39;</span><span class="p">),</span> <span class="s">&quot;gene_id&quot;</span><span class="p">,</span> <span class="nf">list</span><span class="p">(</span><span class="s">&quot;P53&quot;</span><span class="p">))</span>
+
+<span class="c1"># Now lets actually display it</span>
+<span class="n">boxplot</span> <span class="o">&lt;-</span> <span class="n">sciviso</span><span class="o">$</span><span class="nf">Violinplot</span><span class="p">(</span><span class="n">box_df</span><span class="p">,</span> <span class="s">&quot;Conditions&quot;</span><span class="p">,</span> <span class="s">&quot;Values&quot;</span><span class="p">,</span> <span class="s">&quot;ARL11 MUT and MUC4 MUT for P53&quot;</span><span class="p">,</span> <span class="n">add_dots</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span>
+<span class="n">boxplot</span><span class="o">$</span><span class="nf">plot</span><span class="p">()</span>
+<span class="n">mpl</span><span class="o">$</span><span class="n">pyplot</span><span class="o">$</span><span class="nf">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="example-2-looking-at-differences-across-genes-between-conditions">
+<h2>Example 2: Looking at differences across genes between conditions<a class="headerlink" href="#example-2-looking-at-differences-across-genes-between-conditions" title="Permalink to this headline">¶</a></h2>
+<p>Here we have selected a group of genes and we’re interested in how specifc cases change across these genes. For this, we’ll use the log transformed data. Here we look at a box plot of each condition on the x axis and the y-values are the values for these conditions.</p>
+<p>submitter_id
+project_id
+age_at_index
+gender
+race
+vital_status
+tumor_stage
+normal_samples
+tumor_samples
+case_files
+tumor_stage_num</p>
+<p>SolidTissueNormal vs PrimaryTumor</p>
+<p>For this, we’re just going to make two plots, a violin plot of the KIRP dataset for a set of genes and the KIRC
+we’re going to be looking at the normal tissue compared with the shape of the tumour tissue</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">male_KIRP_dict</span> <span class="o">&lt;-</span> <span class="nf">list</span><span class="p">(</span><span class="s">&#39;gender&#39;</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span><span class="s">&#39;male&#39;</span><span class="p">),</span> <span class="s">&#39;tumor_stage_num&#39;</span> <span class="o">=</span> <span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="m">3</span><span class="p">,</span> <span class="m">4</span><span class="p">),</span> <span class="s">&#39;project_id&#39;</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span><span class="s">&#39;TCGA-KIRP&#39;</span><span class="p">))</span>
+<span class="n">male_KIRP</span> <span class="o">&lt;-</span> <span class="n">api</span><span class="o">$</span><span class="nf">get_cases_with_meta</span><span class="p">(</span><span class="n">male_KIRP_dict</span><span class="p">)</span>
+<span class="n">male_KIRC_dict</span> <span class="o">&lt;-</span> <span class="nf">list</span><span class="p">(</span><span class="s">&#39;gender&#39;</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span><span class="s">&#39;male&#39;</span><span class="p">),</span> <span class="s">&#39;tumor_stage_num&#39;</span> <span class="o">=</span> <span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="m">3</span><span class="p">,</span> <span class="m">4</span><span class="p">),</span> <span class="s">&#39;project_id&#39;</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span><span class="s">&#39;TCGA-KIRC&#39;</span><span class="p">))</span>
+<span class="n">male_KIRC</span> <span class="o">&lt;-</span> <span class="n">api</span><span class="o">$</span><span class="nf">get_cases_with_meta</span><span class="p">(</span><span class="n">male_KIRC_dict</span><span class="p">)</span>
+
+<span class="n">transformed_df</span> <span class="o">&lt;-</span> <span class="n">df</span><span class="p">[</span><span class="s">&#39;gene_id&#39;</span><span class="p">]</span>
+
+<span class="c1"># Here we&#39;re going to get a couple of groups of data, first the KIRP normal</span>
+<span class="n">values_columns_filtered_df</span> <span class="o">&lt;-</span> <span class="n">api</span><span class="o">$</span><span class="nf">get_values_from_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s">&#39;gene_id&#39;</span><span class="p">,</span> <span class="n">male_KIRP</span><span class="p">,</span> <span class="kc">NULL</span><span class="p">,</span> <span class="n">column_name_includes</span><span class="o">=</span><span class="nf">list</span><span class="p">(</span><span class="s">&quot;SolidTissueNormal&quot;</span><span class="p">))</span>
+<span class="n">transformed_df</span> <span class="o">&lt;-</span><span class="nf">log2_df_values</span><span class="p">(</span><span class="n">values_columns_filtered_df</span><span class="p">[[</span><span class="m">2</span><span class="p">]],</span> <span class="n">transformed_df</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="s">&#39;gene_id&#39;</span><span class="p">,</span> <span class="s">&#39;KIRP-NORMAL_&#39;</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span>
+
+<span class="n">values_columns_filtered_df</span> <span class="o">&lt;-</span> <span class="n">api</span><span class="o">$</span><span class="nf">get_values_from_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s">&#39;gene_id&#39;</span><span class="p">,</span> <span class="n">male_KIRP</span><span class="p">,</span> <span class="kc">NULL</span><span class="p">,</span> <span class="n">column_name_includes</span><span class="o">=</span><span class="nf">list</span><span class="p">(</span><span class="s">&quot;PrimaryTumor&quot;</span><span class="p">))</span>
+<span class="n">transformed_df</span> <span class="o">&lt;-</span><span class="nf">log2_df_values</span><span class="p">(</span><span class="n">values_columns_filtered_df</span><span class="p">[[</span><span class="m">2</span><span class="p">]],</span> <span class="n">transformed_df</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="s">&#39;gene_id&#39;</span><span class="p">,</span> <span class="s">&#39;KIRP-TUMOURL_&#39;</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span>
+
+<span class="n">values_columns_filtered_df</span> <span class="o">&lt;-</span> <span class="n">api</span><span class="o">$</span><span class="nf">get_values_from_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s">&#39;gene_id&#39;</span><span class="p">,</span> <span class="n">male_KIRC</span><span class="p">,</span> <span class="kc">NULL</span><span class="p">,</span> <span class="n">column_name_includes</span><span class="o">=</span><span class="nf">list</span><span class="p">(</span><span class="s">&quot;SolidTissueNormal&quot;</span><span class="p">))</span>
+<span class="n">transformed_df</span> <span class="o">&lt;-</span><span class="nf">log2_df_values</span><span class="p">(</span><span class="n">values_columns_filtered_df</span><span class="p">[[</span><span class="m">2</span><span class="p">]],</span> <span class="n">transformed_df</span><span class="p">,</span> <span class="n">values_columns_filtered_df</span><span class="p">[[</span><span class="m">3</span><span class="p">]],</span> <span class="s">&#39;gene_id&#39;</span><span class="p">,</span> <span class="s">&#39;KIRC-NORMAL_&#39;</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span>
+
+<span class="n">values_columns_filtered_df</span> <span class="o">&lt;-</span> <span class="n">api</span><span class="o">$</span><span class="nf">get_values_from_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s">&#39;gene_id&#39;</span><span class="p">,</span> <span class="n">male_KIRC</span><span class="p">,</span> <span class="kc">NULL</span><span class="p">,</span> <span class="n">column_name_includes</span><span class="o">=</span><span class="nf">list</span><span class="p">(</span><span class="s">&quot;PrimaryTumor&quot;</span><span class="p">))</span>
+<span class="n">transformed_df</span> <span class="o">&lt;-</span><span class="nf">log2_df_values</span><span class="p">(</span><span class="n">values_columns_filtered_df</span><span class="p">[[</span><span class="m">2</span><span class="p">]],</span> <span class="n">transformed_df</span><span class="p">,</span> <span class="n">values_columns_filtered_df</span><span class="p">[[</span><span class="m">3</span><span class="p">]],</span> <span class="s">&#39;gene_id&#39;</span><span class="p">,</span> <span class="s">&#39;KIRC-TUMOUR_&#39;</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span>
+
+<span class="n">boxplot</span> <span class="o">&lt;-</span> <span class="n">sciviso</span><span class="o">$</span><span class="nf">Boxplot</span><span class="p">(</span><span class="n">transformed_df</span><span class="p">,</span> <span class="kc">NULL</span><span class="p">,</span> <span class="kc">NULL</span><span class="p">)</span>
+<span class="n">box_df</span> <span class="o">&lt;-</span> <span class="n">boxplot</span><span class="o">$</span><span class="nf">format_data_for_boxplot</span><span class="p">(</span><span class="n">transformed_df</span><span class="p">,</span> <span class="nf">list</span><span class="p">(</span><span class="s">&#39;KIRP-TUMOUR&#39;</span><span class="p">,</span> <span class="s">&#39;KIRP-NORMAL&#39;</span><span class="p">,</span> <span class="s">&#39;KIRC-NORMAL&#39;</span><span class="p">,</span> <span class="s">&#39;KIRC-TUMOUR&#39;</span><span class="p">),</span> <span class="s">&quot;gene_id&quot;</span><span class="p">,</span> <span class="nf">list</span><span class="p">(</span><span class="s">&quot;ANK3&quot;</span><span class="p">))</span>
+<span class="n">boxplot</span> <span class="o">=</span> <span class="n">sciviso</span><span class="o">$</span><span class="nf">Violinplot</span><span class="p">(</span><span class="n">box_df</span><span class="p">,</span> <span class="s">&quot;Conditions&quot;</span><span class="p">,</span> <span class="s">&quot;Values&quot;</span><span class="p">,</span> <span class="s">&quot;Looking at KIRP v KIRC tumour and normal ANK3&quot;</span><span class="p">,</span> <span class="n">add_dots</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span>
+<span class="n">boxplot</span><span class="o">$</span><span class="nf">plot</span><span class="p">()</span>
+<span class="n">mpl</span><span class="o">$</span><span class="n">pyplot</span><span class="o">$</span><span class="nf">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="example-3-looking-at-genes-across-conditions">
+<h2>Example 3: Looking at genes across conditions<a class="headerlink" href="#example-3-looking-at-genes-across-conditions" title="Permalink to this headline">¶</a></h2>
+<p>Here we may have a hypothesis related to how a specific gene changes across multiple conditions. For this, we may want to look at a box plot of the genes on the x-axis and the values of that gene from the different samples as the y axis.</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">filter_col</span> <span class="o">&lt;-</span> <span class="s">&#39;ssm.consequence.0.transcript.gene.symbol&#39;</span>
+<span class="n">column_returned</span> <span class="o">&lt;-</span> <span class="s">&quot;case_id&quot;</span>
+<span class="n">genes_of_interest</span> <span class="o">&lt;-</span> <span class="nf">c</span><span class="p">(</span><span class="s">&#39;SOX2&#39;</span><span class="p">,</span> <span class="s">&#39;P53&#39;</span><span class="p">,</span> <span class="s">&#39;MUC4&#39;</span><span class="p">,</span> <span class="s">&#39;ARL11&#39;</span><span class="p">)</span>
+<span class="c1"># Now we have our genes we want these to be our x axis</span>
+<span class="n">female_early_dict</span> <span class="o">&lt;-</span> <span class="nf">list</span><span class="p">(</span><span class="s">&#39;gender&#39;</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span><span class="s">&#39;female&#39;</span><span class="p">),</span> <span class="s">&#39;tumor_stage_num&#39;</span> <span class="o">=</span> <span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">2</span><span class="p">),</span> <span class="s">&#39;project_id&#39;</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span><span class="s">&#39;TCGA-KIRP&#39;</span><span class="p">))</span>
+<span class="n">female_early</span> <span class="o">&lt;-</span> <span class="n">api</span><span class="o">$</span><span class="nf">get_cases_with_meta</span><span class="p">(</span><span class="n">female_early_dict</span><span class="p">)</span>
+<span class="n">female_late_dict</span> <span class="o">&lt;-</span> <span class="nf">list</span><span class="p">(</span><span class="s">&#39;gender&#39;</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span><span class="s">&#39;female&#39;</span><span class="p">),</span> <span class="s">&#39;tumor_stage_num&#39;</span> <span class="o">=</span> <span class="nf">c</span><span class="p">(</span><span class="m">3</span><span class="p">,</span> <span class="m">4</span><span class="p">),</span> <span class="s">&#39;project_id&#39;</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span><span class="s">&#39;TCGA-KIRP&#39;</span><span class="p">))</span>
+<span class="n">female_late</span> <span class="o">&lt;-</span> <span class="n">api</span><span class="o">$</span><span class="nf">get_cases_with_meta</span><span class="p">(</span><span class="n">female_late_dict</span><span class="p">)</span>
+
+<span class="c1"># Lets log2 + 1 the data </span>
+<span class="n">transformed_df</span> <span class="o">&lt;-</span> <span class="n">df</span><span class="p">[</span><span class="s">&#39;gene_id&#39;</span><span class="p">]</span>
+
+<span class="n">values_columns_filtered_df</span> <span class="o">&lt;-</span> <span class="n">api</span><span class="o">$</span><span class="nf">get_values_from_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s">&#39;gene_id&#39;</span><span class="p">,</span> <span class="n">female_early</span><span class="p">)</span>
+<span class="n">transformed_df</span> <span class="o">&lt;-</span><span class="nf">log2_df_values</span><span class="p">(</span><span class="n">values_columns_filtered_df</span><span class="p">[[</span><span class="m">2</span><span class="p">]],</span> <span class="n">transformed_df</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="s">&#39;gene_id&#39;</span><span class="p">,</span> <span class="s">&#39;EARLY_STAGE_&#39;</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span>
+
+<span class="n">values_columns_filtered_df</span> <span class="o">&lt;-</span> <span class="n">api</span><span class="o">$</span><span class="nf">get_values_from_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s">&#39;gene_id&#39;</span><span class="p">,</span> <span class="n">female_late</span><span class="p">)</span>
+<span class="n">transformed_df</span> <span class="o">&lt;-</span><span class="nf">log2_df_values</span><span class="p">(</span><span class="n">values_columns_filtered_df</span><span class="p">[[</span><span class="m">2</span><span class="p">]],</span> <span class="n">transformed_df</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="s">&#39;gene_id&#39;</span><span class="p">,</span> <span class="s">&#39;LATE_STAGE_&#39;</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span>
+
+<span class="c1"># Lets get the values for these cases </span>
+<span class="c1"># Cool we have 56 and 19 that&#39;s enough for a statistical sig let&#39;s see if any of our genes are interesting</span>
+      
+<span class="nf">for </span><span class="p">(</span><span class="n">i</span> <span class="n">in</span> <span class="nf">seq_along</span><span class="p">(</span><span class="n">genes_of_interest</span><span class="p">))</span> <span class="p">{</span>
+  <span class="n">gene</span> <span class="o">&lt;-</span> <span class="n">genes_of_interest</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+  
+  <span class="c1"># Run this code in a try catch statement since we don&#39;t know if it will execute</span>
+  <span class="n">result</span> <span class="o">=</span> <span class="nf">tryCatch</span><span class="p">({</span>
+      <span class="n">boxplot</span> <span class="o">=</span> <span class="n">sciviso</span><span class="o">$</span><span class="nf">Boxplot</span><span class="p">(</span><span class="n">transformed_df</span><span class="p">,</span> <span class="kc">NULL</span><span class="p">,</span> <span class="kc">NULL</span><span class="p">)</span>
+      <span class="n">box_df</span> <span class="o">=</span> <span class="n">boxplot</span><span class="o">$</span><span class="nf">format_data_for_boxplot</span><span class="p">(</span><span class="n">transformed_df</span><span class="p">,</span> <span class="nf">list</span><span class="p">(</span><span class="s">&#39;EARLY_STAGE&#39;</span><span class="p">,</span> <span class="s">&#39;LATE_STAGE&#39;</span><span class="p">),</span> <span class="s">&quot;gene_id&quot;</span><span class="p">,</span> <span class="nf">list</span><span class="p">(</span><span class="n">gene</span><span class="p">))</span>
+      <span class="n">boxplot</span> <span class="o">=</span> <span class="n">sciviso</span><span class="o">$</span><span class="nf">Boxplot</span><span class="p">(</span><span class="n">box_df</span><span class="p">,</span> <span class="s">&quot;Conditions&quot;</span><span class="p">,</span> <span class="s">&quot;Values&quot;</span><span class="p">,</span> <span class="n">gene</span><span class="p">,</span> <span class="n">add_dots</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span>
+      <span class="n">boxplot</span><span class="o">$</span><span class="nf">save_plot</span><span class="p">(</span><span class="nf">list</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">gene</span><span class="p">))</span>
+      <span class="n">mpl</span><span class="o">$</span><span class="n">pyplot</span><span class="o">$</span><span class="nf">show</span><span class="p">()</span>
+    <span class="p">},</span> <span class="n">warning</span> <span class="o">=</span> <span class="nf">function</span><span class="p">(</span><span class="n">warning_condition</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nf">print</span><span class="p">(</span><span class="nf">paste</span><span class="p">(</span><span class="s">&quot;Gene not found: &quot;</span><span class="p">,</span> <span class="n">gene</span><span class="p">))</span>
+    <span class="p">},</span> <span class="n">error</span> <span class="o">=</span> <span class="nf">function</span><span class="p">(</span><span class="n">error_condition</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nf">print</span><span class="p">(</span><span class="nf">paste</span><span class="p">(</span><span class="s">&quot;Gene not found: &quot;</span><span class="p">,</span> <span class="n">gene</span><span class="p">))</span>
+    <span class="p">},</span> <span class="n">finally</span><span class="o">=</span><span class="p">{</span>
+      <span class="nf">print</span><span class="p">(</span><span class="s">&quot;Continuing...&quot;</span><span class="p">)</span>
+    <span class="p">})</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>x</p>
+</div>
+<div class="section" id="example-4-running-differential-expression-on-two-conditions">
+<h2>Example 4: Running differential expression on two conditions<a class="headerlink" href="#example-4-running-differential-expression-on-two-conditions" title="Permalink to this headline">¶</a></h2>
+<p>Since we have so many ways to chop and look at our data, we may be interested in running differential expression analysis on two of our metadata, for example, we can use the dataframe we set up before to find what is the
+difference between our early and late stage females in the KIRP dataset?</p>
+<p>To increase the power of our test, we’re just going to look at the genes that had mutations.</p>
+<p>So our null hypothesis is:
+For each gene with a mutation, there is no between the expression of females of late stage and early stage RCC in the KIRP dataset at the 0.05 level.</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># UNCOMMENT IF YOU HAVE ISSUES AND NEED TO INSTALL THESE</span>
+<span class="c1">#BiocManager::install(&quot;edgeR&quot;)</span>
+<span class="c1">#BiocManager::install(&quot;tidyverse&quot;)</span>
+<span class="nf">library</span><span class="p">(</span><span class="s">&quot;edgeR&quot;</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="s">&quot;tidyverse&quot;</span><span class="p">)</span>
+
+<span class="c1"># Get our data of interest, this will be females from the KIRP dataset from stages 1 and four</span>
+<span class="n">male_dict</span> <span class="o">&lt;-</span> <span class="nf">list</span><span class="p">(</span><span class="s">&#39;gender&#39;</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span><span class="s">&#39;male&#39;</span><span class="p">),</span> <span class="s">&#39;tumor_stage_num&#39;</span> <span class="o">=</span> <span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="m">3</span><span class="p">,</span> <span class="m">4</span><span class="p">),</span> <span class="s">&#39;project_id&#39;</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span><span class="s">&#39;TCGA-KIRP&#39;</span><span class="p">))</span>
+<span class="n">male_cases</span> <span class="o">&lt;-</span> <span class="n">api</span><span class="o">$</span><span class="nf">get_cases_with_meta</span><span class="p">(</span><span class="n">male_dict</span><span class="p">)</span>
+
+<span class="c1"># Lets get all the genes with mutations</span>
+<span class="n">genes</span> <span class="o">&lt;-</span> <span class="n">api</span><span class="o">$</span><span class="nf">get_genes_with_mutations</span><span class="p">()</span>
+
+<span class="c1"># How many genes have mutations?</span>
+<span class="nf">length</span><span class="p">(</span><span class="n">genes</span><span class="p">)</span>
+
+<span class="n">values_columns_filtered_df</span> <span class="o">&lt;-</span> <span class="n">api</span><span class="o">$</span><span class="nf">get_values_from_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s">&#39;gene_id&#39;</span><span class="p">,</span> <span class="n">male_cases</span><span class="p">,</span> <span class="n">genes</span><span class="p">)</span>
+<span class="c1"># Lets save this as a count matrix so we can use it multiple times</span>
+<span class="n">filename</span> <span class="o">&lt;-</span> <span class="n">api</span><span class="o">$</span><span class="n">u</span><span class="o">$</span><span class="nf">generate_label</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="s">&quot;female_kirp&quot;</span><span class="p">),</span> <span class="s">&quot;.csv&quot;</span><span class="p">)</span>
+<span class="n">api</span><span class="o">$</span><span class="n">u</span><span class="o">$</span><span class="nf">save_df</span><span class="p">(</span><span class="n">values_columns_filtered_df</span><span class="p">[[</span><span class="m">3</span><span class="p">]],</span> <span class="n">filename</span><span class="p">)</span>
+
+
+
+<span class="c1"># Used: https://ucdavis-bioinformatics-training.github.io/2018-June-RNA-Seq-Workshop/thursday/DE.html as an example, </span>
+<span class="c1"># as with: https://gist.github.com/stephenturner/f60c1934405c127f09a6 as template</span>
+
+<span class="c1"># Now we could run a DE analysis! on these cases, since tehre seems to be a couple of KIRC and KIRP in here, </span>
+<span class="c1"># Lets see if there are any DE genes between these two conditions, also lets filter our </span>
+
+<span class="n">countdata</span> <span class="o">&lt;-</span> <span class="nf">read.csv</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">header</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">,</span> <span class="n">sep</span> <span class="o">=</span> <span class="s">&quot;,&quot;</span><span class="p">)</span>
+<span class="c1"># Used: https://gist.github.com/stephenturner/f60c1934405c127f09a6 as template</span>
+<span class="c1"># Convert to matrix</span>
+<span class="n">genes</span> <span class="o">&lt;-</span> <span class="n">countdata</span><span class="p">[,</span><span class="m">1</span><span class="p">]</span>
+<span class="nf">rownames</span><span class="p">(</span><span class="n">countdata</span><span class="p">)</span> <span class="o">&lt;-</span> <span class="n">countdata</span><span class="o">$</span><span class="n">gene_id</span>
+<span class="n">countdata</span> <span class="o">&lt;-</span> <span class="nf">as.matrix</span><span class="p">(</span><span class="n">countdata</span><span class="p">[,</span><span class="m">2</span><span class="o">:</span><span class="nf">ncol</span><span class="p">(</span><span class="n">countdata</span><span class="p">)])</span>
+<span class="c1"># We want to set the matrix to just be the numeric values i.e. we remove the first column which is gene IDs</span>
+<span class="n">mat</span> <span class="o">&lt;-</span> <span class="n">countdata</span><span class="p">[,</span><span class="m">2</span><span class="o">:</span><span class="nf">ncol</span><span class="p">(</span><span class="n">countdata</span><span class="p">)]</span>
+<span class="c1"># We now set the row names to be the gene IDs</span>
+<span class="nf">rownames</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span> <span class="o">&lt;-</span> <span class="n">genes</span>
+
+<span class="c1"># Create DGEList object</span>
+<span class="n">d0</span> <span class="o">&lt;-</span> <span class="nf">DGEList</span><span class="p">(</span><span class="n">countdata</span><span class="p">)</span>
+
+<span class="c1"># Calculate normalisation factors</span>
+<span class="n">d0</span> <span class="o">&lt;-</span> <span class="nf">calcNormFactors</span><span class="p">(</span><span class="n">d0</span><span class="p">)</span>
+<span class="n">cutoff</span> <span class="o">&lt;-</span> <span class="m">1</span>
+<span class="n">drop</span> <span class="o">&lt;-</span> <span class="nf">which</span><span class="p">(</span><span class="nf">apply</span><span class="p">(</span><span class="nf">cpm</span><span class="p">(</span><span class="n">d0</span><span class="p">),</span> <span class="m">1</span><span class="p">,</span> <span class="n">max</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">cutoff</span><span class="p">)</span>
+<span class="n">d</span> <span class="o">&lt;-</span> <span class="n">d0</span><span class="p">[</span><span class="o">-</span><span class="n">drop</span><span class="p">,]</span> 
+<span class="nf">dim</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="c1"># number of genes left 2708</span>
+
+<span class="n">snames</span> <span class="o">&lt;-</span> <span class="nf">colnames</span><span class="p">(</span><span class="n">countdata</span><span class="p">)</span> <span class="c1"># Sample names</span>
+<span class="c1"># Lets get the names of the different factors</span>
+<span class="n">split_names</span> <span class="o">&lt;-</span> <span class="nf">str_split</span><span class="p">(</span><span class="n">snames</span><span class="p">,</span> <span class="s">&#39;_&#39;</span><span class="p">)</span>
+
+<span class="c1"># Here we&#39;re assigning each of the columns a name based on one of the values we set using the metadata</span>
+<span class="n">sample_type</span> <span class="o">&lt;-</span> <span class="nf">sapply</span><span class="p">(</span><span class="n">split_names</span><span class="p">,</span> <span class="nf">function</span><span class="p">(</span><span class="n">x</span><span class="p">){</span><span class="n">x</span><span class="p">[[</span><span class="m">2</span><span class="p">]]})</span>
+<span class="n">project</span> <span class="o">&lt;-</span> <span class="nf">sapply</span><span class="p">(</span><span class="n">split_names</span><span class="p">,</span> <span class="nf">function</span><span class="p">(</span><span class="n">x</span><span class="p">){</span><span class="n">x</span><span class="p">[[</span><span class="m">1</span><span class="p">]]})</span>
+<span class="n">gender</span> <span class="o">&lt;-</span> <span class="nf">sapply</span><span class="p">(</span><span class="n">split_names</span><span class="p">,</span> <span class="nf">function</span><span class="p">(</span><span class="n">x</span><span class="p">){</span><span class="n">x</span><span class="p">[[</span><span class="m">3</span><span class="p">]]})</span>
+<span class="n">race</span> <span class="o">&lt;-</span> <span class="nf">sapply</span><span class="p">(</span><span class="n">split_names</span><span class="p">,</span> <span class="nf">function</span><span class="p">(</span><span class="n">x</span><span class="p">){</span><span class="n">x</span><span class="p">[[</span><span class="m">4</span><span class="p">]]})</span>
+<span class="n">tumour_stage</span> <span class="o">&lt;-</span> <span class="nf">sapply</span><span class="p">(</span><span class="n">split_names</span><span class="p">,</span> <span class="nf">function</span><span class="p">(</span><span class="n">x</span><span class="p">){</span><span class="n">x</span><span class="p">[[</span><span class="m">5</span><span class="p">]]})</span>
+<span class="n">sample_type</span>
+<span class="c1"># Now we&#39;re intersted in tumour stage and race</span>
+<span class="n">group</span> <span class="o">&lt;-</span> <span class="nf">interaction</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">tumour_stage</span><span class="p">)</span>
+
+<span class="c1"># Check none of your samples seem very odd/out of kilter with the rest of them</span>
+<span class="nf">plotMDS</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="nf">as.numeric</span><span class="p">(</span><span class="n">group</span><span class="p">))</span>
+
+<span class="c1"># Have a look at the mean variance trend (we want to see a nice curve between the mean and the variance)</span>
+<span class="n">mm</span> <span class="o">&lt;-</span> <span class="nf">model.matrix</span><span class="p">(</span><span class="o">~</span><span class="m">0</span> <span class="o">+</span> <span class="n">group</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">&lt;-</span> <span class="nf">voom</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">mm</span><span class="p">,</span> <span class="n">plot</span> <span class="o">=</span> <span class="bp">T</span><span class="p">)</span>
+
+<span class="c1"># Build a linear model of the data</span>
+<span class="n">fit</span> <span class="o">&lt;-</span> <span class="nf">lmFit</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">mm</span><span class="p">)</span>
+<span class="nf">head</span><span class="p">(</span><span class="nf">coef</span><span class="p">(</span><span class="n">fit</span><span class="p">))</span>
+
+<span class="c1"># Make the contrasts between your conditions</span>
+<span class="n">contr</span> <span class="o">&lt;-</span> <span class="nf">makeContrasts</span><span class="p">(</span><span class="n">groupTCGA.KIRP.1</span> <span class="o">-</span> <span class="n">groupTCGA.KIRP.3</span><span class="p">,</span> <span class="n">levels</span> <span class="o">=</span> <span class="nf">colnames</span><span class="p">(</span><span class="nf">coef</span><span class="p">(</span><span class="n">fit</span><span class="p">)))</span>
+
+<span class="c1">#Estimate contrast for each gene</span>
+<span class="n">tmp</span> <span class="o">&lt;-</span> <span class="nf">contrasts.fit</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span> <span class="n">contr</span><span class="p">)</span>
+
+<span class="c1"># Empirical Bayes smoothing of standard errors (shrinks standard errors that are much larger or smaller than those from other genes towards the average standard error) (see https://www.degruyter.com/doi/10.2202/1544-6115.1027)</span>
+<span class="n">tmp</span> <span class="o">&lt;-</span> <span class="nf">eBayes</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+
+<span class="c1"># What genes are most differentially expressed?</span>
+<span class="n">top.table</span> <span class="o">&lt;-</span> <span class="nf">topTable</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="n">sort.by</span> <span class="o">=</span> <span class="s">&quot;P&quot;</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="kc">Inf</span><span class="p">)</span>
+<span class="nf">write.csv</span><span class="p">(</span><span class="n">top.table</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="nf">paste</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="s">&quot;gender_mutation_20200416.csv&quot;</span><span class="p">))</span>
+<span class="nf">length</span><span class="p">(</span><span class="nf">which</span><span class="p">(</span><span class="n">top.table</span><span class="o">$</span><span class="n">adj.P.Val</span> <span class="o">&lt;</span> <span class="m">0.05</span><span class="p">))</span>
+
+<span class="c1"># Lastly lets look at our volcano plot of the p values</span>
+<span class="n">edgeR_dataframe</span> <span class="o">&lt;-</span> <span class="n">pd</span><span class="o">$</span><span class="nf">read_csv</span><span class="p">(</span><span class="nf">paste</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="s">&quot;gender_mutation_20200416.csv&quot;</span><span class="p">))</span>
+<span class="n">edgeR_dataframe</span><span class="p">[</span><span class="s">&#39;gene_id&#39;</span><span class="p">]</span> <span class="o">&lt;-</span> <span class="nf">rownames</span><span class="p">(</span><span class="n">top.table</span><span class="p">)</span>
+<span class="n">edgeR_dataframe</span>
+<span class="n">volcanoplot</span> <span class="o">&lt;-</span> <span class="n">sciviso</span><span class="o">$</span><span class="nf">Volcanoplot</span><span class="p">(</span><span class="n">edgeR_dataframe</span><span class="p">,</span> <span class="s">&quot;logFC&quot;</span><span class="p">,</span> <span class="s">&quot;adj.P.Val&quot;</span><span class="p">,</span> <span class="s">&quot;gene_id&quot;</span><span class="p">,</span> <span class="n">label_big_sig</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span>
+<span class="n">volcanoplot</span><span class="o">$</span><span class="nf">plot</span><span class="p">()</span>
+<span class="n">mpl</span><span class="o">$</span><span class="n">pyplot</span><span class="o">$</span><span class="nf">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="cli.html" class="btn btn-neutral float-right" title="CLI" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../installing/index.html" class="btn btn-neutral float-left" title="Installing sci-DAT" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Ariane Mora
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

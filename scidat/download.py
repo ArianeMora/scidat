@@ -39,8 +39,15 @@ class Download:
         self.split_manifest_dir = split_manifest_dir
         self.gdc_client = gdc_client
         self.manifest_file = manifest_file
-        self.max_cnt = max_cnt
+        self.max_cnt = 6000
         self.downloaded_files = []
+        self.file_type = None
+        self.check_args()
+
+    def add_windows_slash(self, change_str):
+        if change_str and '/' in change_str and (self.file_type == 'windows' or 'C:' in change_str):
+            return change_str.replace('/', '\\')
+        return change_str
 
     def check_args(self) -> None:
         """
@@ -49,6 +56,12 @@ class Download:
         -------
 
         """
+        if self.gdc_client and 'exe' in self.gdc_client:
+            self.file_type = 'windows'
+        self.download_dir = self.add_windows_slash(self.download_dir)
+        self.manifest_file = self.add_windows_slash(self.manifest_file)
+        self.split_manifest_dir = self.add_windows_slash(self.split_manifest_dir)
+        self.gdc_client = self.add_windows_slash(self.gdc_client)
 
         if not os.path.isdir(self.download_dir):
             raise DownloadException(f'ARGPARSE ERR: download directory was not a directory: {self.download_dir}')
@@ -56,16 +69,18 @@ class Download:
         if not os.path.isfile(self.manifest_file):
             raise DownloadException(f'ARGPARSE ERR: manifest file does not exist: {self.manifest_file}')
 
-        if not os.path.isfile(self.gdc_client):
+        gdc_client = self.gdc_client.replace('/./', '/')
+        if not os.path.isfile(gdc_client):
             raise DownloadException(f'ARGPARSE ERR: gdc-client file does not exist: {self.gdc_client}')
-
+        if not os.access(gdc_client, os.X_OK):
+            raise DownloadException(f'ARGPARSE ERR: gdc-client file is not executable: {self.gdc_client}')
         if not os.path.isdir(self.split_manifest_dir):
             raise DownloadException(f'ARGPARSE ERR: the directory you selected to save your '
                                     f'manifest files to was not a directory: {self.split_manifest_dir}')
 
         # Now check they all have trailing slash for directories
-        self.download_dir = self.u.check_dir_format(self.download_dir)
-        self.split_manifest_dir = self.u.check_dir_format(self.split_manifest_dir)
+        # self.download_dir = self.u.check_dir_format(self.download_dir)
+        # self.split_manifest_dir = self.u.check_dir_format(self.split_manifest_dir)
 
     def download_data_using_api(self, case_ids: list, data_type: str) -> None:
         """
@@ -209,6 +224,7 @@ class Download:
             p.wait()
 
     def copy_downloads_to_new_dir(self, processed_dir):
+        processed_dir = self.add_windows_slash(processed_dir)
         files = os.listdir(self.download_dir)
         count = 0
         for f in files:
@@ -229,7 +245,11 @@ class Download:
                                         shutil.copyfileobj(f_in, f_out)
                             else:
                                 # If it is a methylation file it isn't zipped so we just copy it across
-                                os.system('cp ' + dir_str + df + ' ' + processed_dir + df)
+                                if self.file_type == 'windows' or 'C:' in dir_str:
+                                    print('xcopy ' + dir_str + df + ' ' + processed_dir + df)
+                                    os.system('xcopy ' + dir_str + df + ' ' + processed_dir + df)
+                                else:
+                                    os.system('cp ' + dir_str + df + ' ' + processed_dir + df)
 
                 except Exception as e:
                     self.u.warn_p(["Unable to process", f])
@@ -282,10 +302,12 @@ class Download:
         # Remove the header
         return download_status[1:]
 
-    def download(self) -> None:
+    def download(self, manifest_filename=None, manifest_path=None) -> None:
         cmds = []
-        manifest_filename = self.manifest_file.split(self.u.dir_sep)[-1]
-        with open(self.manifest_file, 'r+') as f:
+        manifest_filename = manifest_filename if manifest_filename is not None else self.manifest_file.split(self.u.dir_sep)[-1]
+        manifest_path = manifest_path + manifest_filename if manifest_path is not None else self.manifest_file
+
+        with open(manifest_path, 'r+') as f:
             hdr = None
             cnt = 0
             to_write = []

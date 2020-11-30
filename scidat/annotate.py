@@ -41,10 +41,11 @@ class Annotate:
         self.manifest_file = manifest_file
         self.file_types = file_types if file_types is not None else ['450', 'counts']
         if clin_cols is None:
-            clin_cols = ['submitter_id', 'project_id', 'age_at_index', 'gender', 'race', 'vital_status',
+            clin_cols = ['project_id', 'age_at_index', 'gender', 'race', 'vital_status',
                          'tumor_stage', 'days_to_death']
         self.annotation_cols = ['case_files', 'tumor_stage_num', 'race', 'gender', 'project_id', 'days_to_death']
         self.clin_cols = clin_cols
+        self.case_submitter_id = 'submitter_id'
         self.clin_df = None
         self.mutation_df = None
         self.annotated_file_dict = None
@@ -52,6 +53,40 @@ class Annotate:
         self.sep = sep
         self.case_to_mutation = None
         self.case_to_file = None
+        self.file_type = None
+        self.check_args()
+
+    def set_case_submitter_id(self, case_submitter_id):
+        self.case_submitter_id = case_submitter_id
+
+    def add_windows_slash(self, change_str):
+        if change_str and '/' in change_str and (self.file_type == 'windows' or 'C:' in change_str):
+            return change_str.replace('/', '\\')
+        return change_str
+
+    def check_args(self) -> None:
+        """
+        Check that the directories supplied by the user are locations on their computer
+        Returns
+        -------
+
+        """
+        self.output_dir = self.add_windows_slash(self.output_dir)
+        self.clinical_file = self.add_windows_slash(self.clinical_file)
+        self.sample_file = self.add_windows_slash(self.sample_file)
+        self.manifest_file = self.add_windows_slash(self.manifest_file)
+
+        if not os.path.isdir(self.output_dir):
+            raise AnnotateException(f'ARGPARSE ERR: output directory in annotate was not a directory: {self.output_dir}')
+
+        if not os.path.isfile(self.manifest_file):
+            raise AnnotateException(f'ARGPARSE ERR: manifest file does not exist: {self.manifest_file}')
+
+        if not os.path.isfile(self.sample_file):
+            raise AnnotateException(f'ARGPARSE ERR: sample sheet file does not exist: {self.sample_file}')
+
+        if not os.path.isfile(self.clinical_file):
+            raise AnnotateException(f'ARGPARSE ERR: clinical file does not exist: {self.clinical_file}')
 
     def run_setup(self) -> None:
         self.clin_df = self.setup_clin_df()
@@ -61,6 +96,24 @@ class Annotate:
 
     def setup_clin_df(self) -> pd.DataFrame:
         clin_df = pd.read_csv(self.clinical_file, sep='\t')
+        # set the submitter id column
+        new_clin_cols = []
+        # First check if the normal plain submitter_id column isn't in our columns
+        if self.case_submitter_id not in list(clin_df.columns):
+            self.u.warn_p([f'Warning: the column you selected for submitter ID {self.case_submitter_id} '
+                           f'was not in the colums. Resetting submitter_id Available columns: ',
+                           ', '.join(list(clin_df.columns)), '\n Run: annotate.set_case_submitter_id() to setup. \n'
+                                                             'Continuing with automatic selection.'])
+            self.case_submitter_id = None
+        else:
+            new_clin_cols.append(self.case_submitter_id)
+        for c in clin_df:
+            if 'submitter_id' in c and self.case_submitter_id is None:
+                self.case_submitter_id = c
+                self.u.dp(["Submitter ID set as: ", c])
+                new_clin_cols.append(c)
+        new_clin_cols += self.clin_cols
+        self.clin_cols = new_clin_cols
         clin_df = clin_df[self.clin_cols]
         clin_df = clin_df.drop_duplicates()
         self.u.dp(["Clinical dataframe"])
@@ -92,7 +145,7 @@ class Annotate:
             # prior to downloading the manifest
             case_id = project_ids[i] + '_' + case_ids[i]
             file_dict[f] = {'case_id': case_id, 'sample_type': sample_types[i], 'submitter_id': case_ids[i],
-                            'file_id': file_ids[i]}
+                            'file_id': file_ids[i], 'project_id': project_ids[i]}
             case_to_file[case_id].append(f)
             i += 1
         return file_dict, case_to_file
@@ -103,7 +156,7 @@ class Annotate:
 
         # Now lets iterate through out clinical data
         i = 0
-        for c in self.clin_df['submitter_id'].values:
+        for c in self.clin_df[self.case_submitter_id].values:
             # Lets now add the new information
             tumor = 0
             normal = 0
@@ -154,7 +207,6 @@ class Annotate:
                     self.annotated_file_dict[f][c] = value[i]
                     i += 1
         # Now lets build our new column dictionary
-        cases = ['TCGA-BQ-7059']
         for filename, meta in self.annotated_file_dict.items():
             file_type = None
             if 'htseq.counts.gz' in filename:
@@ -168,9 +220,7 @@ class Annotate:
             label = f'{meta["project_id"]}{self.sep}{meta["sample_type"]}{self.sep}{meta["gender"]}{self.sep}' \
                     f'{meta["race"]}{self.sep}{meta["tumor_stage_num"]}{self.sep}{file_type}{self.sep}' \
                     f'{meta["days_to_death"]}{self.sep}{meta["case_id"]}{self.sep}{meta["file_id"]}'
-            for c in cases:
-                if c in label:
-                    print(meta, filename)
+
             # Remove any spaces from the label
             self.annotated_file_dict[filename]['label'] = label.replace(' ', '')
 

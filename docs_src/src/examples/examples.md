@@ -1,0 +1,459 @@
+# R Tutorial 
+
+## Section 1: Data selection and metadata download
+
+Download metatdata from TCGA.
+For this program to work you need to first go to: https://portal.gdc.cancer.gov/ and select the files to download.
+
+In this example, I chose my data by using the following steps:
+    1. Navigate to `Exploration` tab
+    2. Selected `kidney` as the Primary Site
+    3. Selected `solid tissue normal` and `primary tumor` for my Sample Type (823 cases)
+    4. Clicked `View Files in Repository`
+    5. **OPTIONAL**: download the mutation information --> select `Mutations` tab and click `JSON` to download mutation data
+    
+Since I'm only interested in RNAseq count data and Methylation beta values, I filter my files to only include these two types of files.   
+    6. Selected `RNA-seq` as my Experimental Strategy
+    7. Selected `HTSeq - Counts` in Workflow Type
+    8. Clicked `Add all files to cart` (945 files, 815 cases)
+    9. Unselected `HTSeq - Counts` and unselected `RNA-seq`
+    10. Selected `Methylation array` as my Experimental Strategy
+    11. Selected `illumina human methylation 450` in Platform
+    12. Clicked `Add all files to cart` (832 files, 630 cases)
+    
+Now I navigated to my cart which had 1777 files in it. Since it is recomended to use th GDC-data transfer tool (which scidat uses) I only download the `manifest` and the `metadata` for my files of interest.
+Before proceeding, look at how much space the files will need (e.g. for me this is 117GB) make sure the computer you are downloading on has that space available.
+
+### Download: 
+    13. `Biospecimen`
+    14. `Clinical`
+    15. `Sample Sheet`
+    16. `Metadata`
+    17. Click the `Download` button and select `Manifest`
+
+Lastly, move all these files to a new empty directory `~/Documents/TCGA_data_download_scidat/`. 
+Unzip the `Clinical` folder and delete the zipped version.
+Make a new directory in `~/Documents/TCGA_data_download_scidat/` called `downloads` (we'll use this below)
+
+## Get GDC Data Transfer Tool
+If you haven't already got the GDC transfer tool, you'll need to download this, follow the instructions from TCGA on how to do this:
+https://gdc.cancer.gov/access-data/gdc-data-transfer-tool
+
+Move the downloaded GDC transfer tool to the same directory you put your manifest file in i.e. `~/Documents/TCGA_data_download_scidat/` from before.
+Now we're ready to download the files and annotate them with the data we downloaded.
+
+## Section 2:
+
+Setup the environment for using the scidat package in R. Here we need to do the following:
+
+  1. Install "reticulate": `https://rstudio.github.io/reticulate/`
+  2. Install conda: `https://docs.conda.io/en/latest/miniconda.html` (use Python 3.7 version)
+  3. Once conda is installed go to your terminal and type: `conda create -n example python=3.8`, this will create a new `environment`
+  4. Once that has installed, run the following: `source activate tcgaenv`
+  5. Run `pip install scidat`, this will install all the packages we'll need!
+  3. Lastly, type: `where python` and copy that path into the `use_python("~/opt/miniconda3/envs/tcgaenv/bin/python")` below.
+
+For more information on the package see: https://github.com/ArianeMora/scidat 
+```r
+# Install the package reticulate as this allows us to access python packages
+#install.packages("reticulate")
+
+library("reticulate")
+
+# Specify the version of python, to get this path type:
+# "where python" into your terminal
+use_python("~/opt/miniconda3/envs/tcgaenv/bin/python")
+scidat <- import("scidat")
+sciutil <- import("sciutil")
+sciviso <- import ("sciviso")
+mpl <- import ("matplotlib")
+np <- import("numpy")
+pd <- import ("pandas")
+```
+
+## Section 3: File download
+
+The script below assumes you have put the files from above in `TCGA_data_download_scidat/` and that your `gdc-client` is executable (If you are on a windows machine you'll need to haev the windows GDC client selected --> (you can change this below!))
+
+If you are using a windows machine (or put your files in a different folder you'll need to rename that directory).
+
+Before running the script below you will need to make sure you have edited the path to the manifest file, and the gdc_client to be located where you placed them on your computer and with their proper names
+(e.g. 
+
+
+```r
+# This should be a directory on your computer where you want to download the data
+project_dir <- 'TCGA_data_download_scidat/'
+
+# Files downloaded from TCGA
+manifest_file <- paste(project_dir, 'manifest.tsv', sep='')
+
+gdc_client <- paste(project_dir, '../data/example_download/TCGA_data_download_scidat_unix/gdc-client', sep='') # This is for mac users
+# WINDOWS USERS UNCOMMENT THE LINE BELOW
+gdc_client <- paste(project_dir, './gdc-client.exe', sep='') # This is for mac users
+
+# UBUNTU USERS UNCOMMENT THE LINE BELOW
+#gdc_client <- paste(project_dir, './gdc-client-linux', sep='') # This is for mac users
+
+clinical_file <- paste(project_dir, 'clinical.tsv', sep='')
+sample_file <- paste(project_dir, 'gdc_sample_sheet.2020-04-16.tsv', sep='')
+manifest_file <- paste(project_dir, 'gdc_manifest_20200416_055430.txt', sep='')
+annotation_file <- paste(project_dir, 'tcga_hsapiens_gene_ensembl-GRCh38.p13.csv', sep='')
+
+# Directories that you'll need to create in the project diectory
+download_dir <- paste(project_dir, 'downloads/', sep='')
+
+# scidat spits the manifest file into submanifests so that we can make multiple calls to TCGA simulateously.
+# This speeds up the download process. Note, it will use up more of your computers' processing so if you are worried
+# just set the max_cnt to be more than the number of files in your manifest e.g. 100000000
+api <- scidat$API(manifest_file, gdc_client, clinical_file, sample_file, annotation_file, max_cnt=5, split_manifest_dir=download_dir, download_dir=download_dir,
+          meta_dir=project_dir, sep='_')
+
+
+```
+## WARNING DOWNLOADING POTENTIALLY LOTS OF DATA
+
+You'll only need to run the following once! Also check the limits for the size of the data you want to download.
+
+```r
+# Only run this box if you havn't already downloaded the data
+api$download_data_from_manifest()
+```
+
+## Section 3: Clinical information annotation
+
+Here we are going to builld the clinical information dataframe.
+
+We're also interested in the mutation data so we're going to download the mutation data.
+
+## Section 4: Annotation with mutation data
+
+Unfortunately TCGA doesn't make it easy to add the mutation annotation data. 
+
+If in **Section 1** you didn't do the optional *step 5* please go back and download the mutation data as we need this to add the mutation information.
+
+How this section works is that we have the different mutations (the file we downloaded from **Section 1** has the mutation ID and the information about the specific mutation. Unfortunatly, this isn't connected to a case (patient). In order to connect the mutation with the patient we need to call the API provided by TCGA (https://docs.gdc.cancer.gov/API/Users_Guide/Data_Analysis/#simple-somatic-mutation-endpoint-examples).
+
+```r
+# This section will take about 30 second to 1 min
+
+# Build the annotation
+api$build_annotation()
+
+# Download the mutation data --> here we can pass only some case IDs or if we leave it empty we download all the 
+# mutation data for our cases.
+api$download_mutation_data()
+
+```
+
+### If we have already downloaded the mutation data we can skip to this bit where we "build" the mutation dataframe
+
+```r
+# First lets build the mutation DF
+api$build_mutation_df()
+
+# Lets get all the genes with mutations
+genes <- api$get_genes_with_mutations()
+
+# How many genes have mutations?
+length(genes)
+```
+
+
+## Section 5: Combining our data and getting extra metadata for each gene
+
+First, we want to get some extra information about our data, for example we want to assign the gene names rather than the ENSEMBL ids that TCGA give you.
+
+To do this, we'll be using the sciutil package which has a wrapper around biomart package. 
+
+Once we have done this, we can now interact with the data!
+
+
+This section will take some time as we're going to be downloading the annotation information from biomart.
+
+Note you won't have to do this everytime! It will just be the first time when you are creating this reference file.
+
+
+
+```r
+# Build the RNAseq dataframe
+api$build_rna_df(download_dir)
+df <- api$get_rna_df()
+df <- api$add_gene_metadata_to_df(df)
+NROW(df)
+```
+
+## Section 6: The fun bit!
+
+We've finally got to the fun bit! YAY! For this section we'll be generating a coupld of plots as examples, and then displaying these. 
+
+We can now run all sorts of fun things, we'll start with some general stuff:
+
+  1. Get all genes with mutations
+  2. Get cases with specfic mutations
+  3. Get the RNAseq for the cases with mutations
+  4. Get RNAseq for cases with specific metadata (for example based on gender or demographic) or both
+  5. We can add more in...
+
+## Example 1: Calculating the logfold change accross 2 conditions
+Since the data from TCGA is just raw counts, we want to first normalise it. Usually I would use normalisations from DeSeq2, but for this tutorial we'll just log transform counts + 1.
+
+Here we'll pretend to be interested in how female KIRC and male KIRC samples differ. To do this, we'll first calculate the log fold change between the two conditions. Then to see if there are any outlier genes, we'll have a look at a volcano plot of the data.
+
+
+```r
+log2_df_values <- function(columns, log2_df, raw_df, id_column, new_column_prefix, offset) {
+  # Here we want to log2 the values in the columns that aren't the ID column
+  # we offset these with 1
+  for (i in seq_along(columns)) {
+      c <- columns[i]
+      if (c != id_column) {
+        log2_df[[paste(new_column_prefix, c, sep='')]] <- log2(raw_df[[c]] + offset)
+      }
+  }
+  return(log2_df)
+}
+```
+
+
+```r
+
+filter_col <- 'ssm.consequence.0.transcript.gene.symbol'
+column_returned <- "case_id"
+genes_of_interest <- c('SOX2', 'P53', 'MUC4', 'ARL11')
+
+# Let's get cases that have any mutation on the NF2 gene
+ARL11_mutations <- api$get_mutation_values_on_filter(column_returned, c('ARL11'), filter_col)
+ARL11_mutations
+# Lets make a dataframe using pandas
+transformed_df <- df['gene_id']
+values <- api$get_values_from_df(df, 'gene_id', ARL11_mutations)
+filtered_df <- values[[3]]
+columns <- values[[2]]
+# Lets log2 the values
+transformed_df <-log2_df_values(columns, transformed_df, filtered_df, 'gene_id', 'ARL11-MUT_', 1)
+
+met_mutations <- api$get_mutation_values_on_filter(column_returned, c('MUC4'), filter_col)
+values <- api$get_values_from_df(df, 'gene_id', met_mutations)
+filtered_df <- values[[3]]
+columns <- values[[2]]
+transformed_df <-log2_df_values(columns, transformed_df, filtered_df, 'gene_id', 'MET-MUC4_', 1)
+
+# Now lets calculate the changes between two conditions, let's go with KIRC vs KIRP
+boxplot <- sciviso$Boxplot(transformed_df, NULL, NULL)
+box_df <- boxplot$format_data_for_boxplot(transformed_df, c('ARL11-MUT', 'MUC4-MUT'), "gene_id", list("P53"))
+
+# Now lets actually display it
+boxplot <- sciviso$Violinplot(box_df, "Conditions", "Values", "ARL11 MUT and MUC4 MUT for P53", add_dots=TRUE)
+boxplot$plot()
+mpl$pyplot$show()
+
+```
+
+## Example 2: Looking at differences across genes between conditions
+Here we have selected a group of genes and we're interested in how specifc cases change across these genes. For this, we'll use the log transformed data. Here we look at a box plot of each condition on the x axis and the y-values are the values for these conditions.
+
+submitter_id
+project_id
+age_at_index
+gender
+race
+vital_status
+tumor_stage
+normal_samples
+tumor_samples
+case_files
+tumor_stage_num
+
+SolidTissueNormal vs PrimaryTumor
+
+For this, we're just going to make two plots, a violin plot of the KIRP dataset for a set of genes and the KIRC
+we're going to be looking at the normal tissue compared with the shape of the tumour tissue
+
+```r
+male_KIRP_dict <- list('gender' = list('male'), 'tumor_stage_num' = c(1, 2, 3, 4), 'project_id' = list('TCGA-KIRP'))
+male_KIRP <- api$get_cases_with_meta(male_KIRP_dict)
+male_KIRC_dict <- list('gender' = list('male'), 'tumor_stage_num' = c(1, 2, 3, 4), 'project_id' = list('TCGA-KIRC'))
+male_KIRC <- api$get_cases_with_meta(male_KIRC_dict)
+
+transformed_df <- df['gene_id']
+
+# Here we're going to get a couple of groups of data, first the KIRP normal
+values_columns_filtered_df <- api$get_values_from_df(df, 'gene_id', male_KIRP, NULL, column_name_includes=list("SolidTissueNormal"))
+transformed_df <-log2_df_values(values_columns_filtered_df[[2]], transformed_df, df, 'gene_id', 'KIRP-NORMAL_', 1)
+
+values_columns_filtered_df <- api$get_values_from_df(df, 'gene_id', male_KIRP, NULL, column_name_includes=list("PrimaryTumor"))
+transformed_df <-log2_df_values(values_columns_filtered_df[[2]], transformed_df, df, 'gene_id', 'KIRP-TUMOURL_', 1)
+
+values_columns_filtered_df <- api$get_values_from_df(df, 'gene_id', male_KIRC, NULL, column_name_includes=list("SolidTissueNormal"))
+transformed_df <-log2_df_values(values_columns_filtered_df[[2]], transformed_df, values_columns_filtered_df[[3]], 'gene_id', 'KIRC-NORMAL_', 1)
+
+values_columns_filtered_df <- api$get_values_from_df(df, 'gene_id', male_KIRC, NULL, column_name_includes=list("PrimaryTumor"))
+transformed_df <-log2_df_values(values_columns_filtered_df[[2]], transformed_df, values_columns_filtered_df[[3]], 'gene_id', 'KIRC-TUMOUR_', 1)
+
+boxplot <- sciviso$Boxplot(transformed_df, NULL, NULL)
+box_df <- boxplot$format_data_for_boxplot(transformed_df, list('KIRP-TUMOUR', 'KIRP-NORMAL', 'KIRC-NORMAL', 'KIRC-TUMOUR'), "gene_id", list("ANK3"))
+boxplot = sciviso$Violinplot(box_df, "Conditions", "Values", "Looking at KIRP v KIRC tumour and normal ANK3", add_dots=TRUE)
+boxplot$plot()
+mpl$pyplot$show()
+
+```
+
+## Example 3: Looking at genes across conditions
+Here we may have a hypothesis related to how a specific gene changes across multiple conditions. For this, we may want to look at a box plot of the genes on the x-axis and the values of that gene from the different samples as the y axis.
+
+```r
+
+filter_col <- 'ssm.consequence.0.transcript.gene.symbol'
+column_returned <- "case_id"
+genes_of_interest <- c('SOX2', 'P53', 'MUC4', 'ARL11')
+# Now we have our genes we want these to be our x axis
+female_early_dict <- list('gender' = list('female'), 'tumor_stage_num' = c(1, 2), 'project_id' = list('TCGA-KIRP'))
+female_early <- api$get_cases_with_meta(female_early_dict)
+female_late_dict <- list('gender' = list('female'), 'tumor_stage_num' = c(3, 4), 'project_id' = list('TCGA-KIRP'))
+female_late <- api$get_cases_with_meta(female_late_dict)
+
+# Lets log2 + 1 the data 
+transformed_df <- df['gene_id']
+
+values_columns_filtered_df <- api$get_values_from_df(df, 'gene_id', female_early)
+transformed_df <-log2_df_values(values_columns_filtered_df[[2]], transformed_df, df, 'gene_id', 'EARLY_STAGE_', 1)
+
+values_columns_filtered_df <- api$get_values_from_df(df, 'gene_id', female_late)
+transformed_df <-log2_df_values(values_columns_filtered_df[[2]], transformed_df, df, 'gene_id', 'LATE_STAGE_', 1)
+
+# Lets get the values for these cases 
+# Cool we have 56 and 19 that's enough for a statistical sig let's see if any of our genes are interesting
+      
+for (i in seq_along(genes_of_interest)) {
+  gene <- genes_of_interest[i]
+  
+  # Run this code in a try catch statement since we don't know if it will execute
+  result = tryCatch({
+      boxplot = sciviso$Boxplot(transformed_df, NULL, NULL)
+      box_df = boxplot$format_data_for_boxplot(transformed_df, list('EARLY_STAGE', 'LATE_STAGE'), "gene_id", list(gene))
+      boxplot = sciviso$Boxplot(box_df, "Conditions", "Values", gene, add_dots=TRUE)
+      boxplot$save_plot(list(project_dir, gene))
+      mpl$pyplot$show()
+    }, warning = function(warning_condition) {
+      print(paste("Gene not found: ", gene))
+    }, error = function(error_condition) {
+      print(paste("Gene not found: ", gene))
+    }, finally={
+      print("Continuing...")
+    })
+}
+```
+
+x
+## Example 4: Running differential expression on two conditions
+Since we have so many ways to chop and look at our data, we may be interested in running differential expression analysis on two of our metadata, for example, we can use the dataframe we set up before to find what is the
+difference between our early and late stage females in the KIRP dataset?
+
+To increase the power of our test, we're just going to look at the genes that had mutations.
+
+So our null hypothesis is:
+For each gene with a mutation, there is no between the expression of females of late stage and early stage RCC in the KIRP dataset at the 0.05 level.
+
+```r
+# UNCOMMENT IF YOU HAVE ISSUES AND NEED TO INSTALL THESE
+#BiocManager::install("edgeR")
+#BiocManager::install("tidyverse")
+library("edgeR")
+library("tidyverse")
+
+# Get our data of interest, this will be females from the KIRP dataset from stages 1 and four
+male_dict <- list('gender' = list('male'), 'tumor_stage_num' = c(1, 2, 3, 4), 'project_id' = list('TCGA-KIRP'))
+male_cases <- api$get_cases_with_meta(male_dict)
+
+# Lets get all the genes with mutations
+genes <- api$get_genes_with_mutations()
+
+# How many genes have mutations?
+length(genes)
+
+values_columns_filtered_df <- api$get_values_from_df(df, 'gene_id', male_cases, genes)
+# Lets save this as a count matrix so we can use it multiple times
+filename <- api$u$generate_label(c(project_dir, "female_kirp"), ".csv")
+api$u$save_df(values_columns_filtered_df[[3]], filename)
+
+
+
+# Used: https://ucdavis-bioinformatics-training.github.io/2018-June-RNA-Seq-Workshop/thursday/DE.html as an example, 
+# as with: https://gist.github.com/stephenturner/f60c1934405c127f09a6 as template
+
+# Now we could run a DE analysis! on these cases, since tehre seems to be a couple of KIRC and KIRP in here, 
+# Lets see if there are any DE genes between these two conditions, also lets filter our 
+
+countdata <- read.csv(filename, header = TRUE, sep = ",")
+# Used: https://gist.github.com/stephenturner/f60c1934405c127f09a6 as template
+# Convert to matrix
+genes <- countdata[,1]
+rownames(countdata) <- countdata$gene_id
+countdata <- as.matrix(countdata[,2:ncol(countdata)])
+# We want to set the matrix to just be the numeric values i.e. we remove the first column which is gene IDs
+mat <- countdata[,2:ncol(countdata)]
+# We now set the row names to be the gene IDs
+rownames(mat) <- genes
+
+# Create DGEList object
+d0 <- DGEList(countdata)
+
+# Calculate normalisation factors
+d0 <- calcNormFactors(d0)
+cutoff <- 1
+drop <- which(apply(cpm(d0), 1, max) < cutoff)
+d <- d0[-drop,] 
+dim(d) # number of genes left 2708
+
+snames <- colnames(countdata) # Sample names
+# Lets get the names of the different factors
+split_names <- str_split(snames, '_')
+
+# Here we're assigning each of the columns a name based on one of the values we set using the metadata
+sample_type <- sapply(split_names, function(x){x[[2]]})
+project <- sapply(split_names, function(x){x[[1]]})
+gender <- sapply(split_names, function(x){x[[3]]})
+race <- sapply(split_names, function(x){x[[4]]})
+tumour_stage <- sapply(split_names, function(x){x[[5]]})
+sample_type
+# Now we're intersted in tumour stage and race
+group <- interaction(project, tumour_stage)
+
+# Check none of your samples seem very odd/out of kilter with the rest of them
+plotMDS(d, col = as.numeric(group))
+
+# Have a look at the mean variance trend (we want to see a nice curve between the mean and the variance)
+mm <- model.matrix(~0 + group)
+y <- voom(d, mm, plot = T)
+
+# Build a linear model of the data
+fit <- lmFit(y, mm)
+head(coef(fit))
+
+# Make the contrasts between your conditions
+contr <- makeContrasts(groupTCGA.KIRP.1 - groupTCGA.KIRP.3, levels = colnames(coef(fit)))
+
+#Estimate contrast for each gene
+tmp <- contrasts.fit(fit, contr)
+
+# Empirical Bayes smoothing of standard errors (shrinks standard errors that are much larger or smaller than those from other genes towards the average standard error) (see https://www.degruyter.com/doi/10.2202/1544-6115.1027)
+tmp <- eBayes(tmp)
+
+# What genes are most differentially expressed?
+top.table <- topTable(tmp, sort.by = "P", n = Inf)
+write.csv(top.table, file=paste(project_dir, "gender_mutation_20200416.csv"))
+length(which(top.table$adj.P.Val < 0.05))
+
+# Lastly lets look at our volcano plot of the p values
+edgeR_dataframe <- pd$read_csv(paste(project_dir, "gender_mutation_20200416.csv"))
+edgeR_dataframe['gene_id'] <- rownames(top.table)
+edgeR_dataframe
+volcanoplot <- sciviso$Volcanoplot(edgeR_dataframe, "logFC", "adj.P.Val", "gene_id", label_big_sig=TRUE)
+volcanoplot$plot()
+mpl$pyplot$show()
+```
+
+
+
+

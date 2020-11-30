@@ -57,7 +57,7 @@ Setup the environment for using the scidat package in R. Here we need to do the 
   2. Install conda: `https://docs.conda.io/en/latest/miniconda.html` (use Python 3.7 version)
   3. Once conda is installed go to your terminal and type: `conda create -n example python=3.8`, this will create a new `environment`
   4. Once that has installed, run the following: `source activate tcgaenv`
-  5. Run `pip install scidat=1.0.1`, this will install all the packages we'll need!
+  5. Run `pip install scidat`, this will install all the packages we'll need!
   3. Lastly, type: `where python` and copy that path into the `use_python("~/opt/miniconda3/envs/tcgaenv/bin/python")` below.
 
 For more information on the package see: https://github.com/ArianeMora/scidat 
@@ -95,7 +95,7 @@ project_dir <- 'TCGA_data_download_scidat/'
 # Files downloaded from TCGA
 manifest_file <- paste(project_dir, 'manifest.tsv', sep='')
 
-gdc_client <- paste(project_dir, './gdc-client', sep='') # This is for mac users
+gdc_client <- paste(project_dir, '../data/example_download/TCGA_data_download_scidat_unix/gdc-client', sep='') # This is for mac users
 # WINDOWS USERS UNCOMMENT THE LINE BELOW
 gdc_client <- paste(project_dir, './gdc-client.exe', sep='') # This is for mac users
 
@@ -105,6 +105,7 @@ gdc_client <- paste(project_dir, './gdc-client.exe', sep='') # This is for mac u
 clinical_file <- paste(project_dir, 'clinical.tsv', sep='')
 sample_file <- paste(project_dir, 'gdc_sample_sheet.2020-04-16.tsv', sep='')
 manifest_file <- paste(project_dir, 'gdc_manifest_20200416_055430.txt', sep='')
+annotation_file <- paste(project_dir, 'tcga_hsapiens_gene_ensembl-GRCh38.p13.csv', sep='')
 
 # Directories that you'll need to create in the project diectory
 download_dir <- paste(project_dir, 'downloads/', sep='')
@@ -112,7 +113,7 @@ download_dir <- paste(project_dir, 'downloads/', sep='')
 # scidat spits the manifest file into submanifests so that we can make multiple calls to TCGA simulateously.
 # This speeds up the download process. Note, it will use up more of your computers' processing so if you are worried
 # just set the max_cnt to be more than the number of files in your manifest e.g. 100000000
-api <- scidat$API(manifest_file, gdc_client, clinical_file, sample_file, max_cnt=5, split_manifest_dir=download_dir, download_dir=download_dir,
+api <- scidat$API(manifest_file, gdc_client, clinical_file, sample_file, annotation_file, max_cnt=5, split_manifest_dir=download_dir, download_dir=download_dir,
           meta_dir=project_dir, sep='_')
 
 
@@ -185,29 +186,8 @@ Note you won't have to do this everytime! It will just be the first time when yo
 # Build the RNAseq dataframe
 
 api$build_rna_df(download_dir)
-df = api$get_rna_df()
-
-# Now we might want to get some extra information about each gene (for example the gene name! Since TCGA gives us the ensembl IDs). We also download the go term ID amoung other things (such as the ID to map it to KEGG pathways :) )
-biomart <- sciutil$Biomart()
-
-# This is a file we want to save our annotations to, we only need to run this once but it's very useful!
-gene_annotation_file <- api$u$generate_label(c(project_dir, "gene_info"), ".tsv") #paste(project_dir, "gene_info.tsv", sep="") 
-# --> Use this if you haven't already created it: api$u$generate_label(c(project_dir, "gene_info"), ".tsv")
-
-# Here we're generating a gene annotation file from biomart, we could pass it a list of genes but we'll just download everything
-# for now we would replace the '' with c(gene_id1, gene_id2....) etc.
-biomart$build_gene_info_file('hsapiens_gene_ensembl', '', project_dir)
-
-# Now we want to create the actual annotation dictionary
-biomart$build_gene_annot_dict(gene_annotation_file)
-
-# Now we want to add our annotation data to our dataframe
-# The first parameter is our dataframe, then the second parameter is whether we want to drop rows with null values
-# We'll drop these rows since we only want data that has full metadata (i.e. go terms etc)
-df <- biomart$add_gene_metadata_to_df(df, TRUE)
-
-# We can now look at how long our dataframe is (this is because when we use the gene IDs from ENSEMBL theres ~ 60K ids.)
-# They have dups but we can drop the rows later on that have very few counts.
+df <- api$get_rna_df()
+df <- api$add_gene_metadata_to_df(df)
 NROW(df)
 ```
 
@@ -248,31 +228,31 @@ log2_df_values <- function(columns, log2_df, raw_df, id_column, new_column_prefi
 
 filter_col <- 'ssm.consequence.0.transcript.gene.symbol'
 column_returned <- "case_id"
-genes_of_interest <- c('FH', 'SHH', 'SOX2', 'MET', 'SDHA', 'SDHC', 'SDHD', 'MET', 'ATF4', 'CHAC1', 'PSAT1', 'NRF2')
+genes_of_interest <- c('SOX2', 'P53', 'MUC4', 'ARL11')
 
 # Let's get cases that have any mutation on the NF2 gene
-nf2_mutations <- api$get_mutation_values_on_filter(column_returned, c('NF2'), filter_col)
-nf2_mutations
+ARL11_mutations <- api$get_mutation_values_on_filter(column_returned, c('ARL11'), filter_col)
+ARL11_mutations
 # Lets make a dataframe using pandas
 transformed_df <- df['gene_id']
-values <- api$get_values_from_df(df, 'gene_id', nf2_mutations)
+values <- api$get_values_from_df(df, 'gene_id', ARL11_mutations)
 filtered_df <- values[[3]]
 columns <- values[[2]]
 # Lets log2 the values
-transformed_df <-log2_df_values(columns, transformed_df, filtered_df, 'gene_id', 'NF2-MUT_', 1)
+transformed_df <-log2_df_values(columns, transformed_df, filtered_df, 'gene_id', 'ARL11-MUT_', 1)
 
-met_mutations <- api$get_mutation_values_on_filter(column_returned, c('MET'), filter_col)
+met_mutations <- api$get_mutation_values_on_filter(column_returned, c('MUC4'), filter_col)
 values <- api$get_values_from_df(df, 'gene_id', met_mutations)
 filtered_df <- values[[3]]
 columns <- values[[2]]
-transformed_df <-log2_df_values(columns, transformed_df, filtered_df, 'gene_id', 'MET-MUT_', 1)
+transformed_df <-log2_df_values(columns, transformed_df, filtered_df, 'gene_id', 'MET-MUC4_', 1)
 
 # Now lets calculate the changes between two conditions, let's go with KIRC vs KIRP
 boxplot <- sciviso$Boxplot(transformed_df, NULL, NULL)
-box_df <- boxplot$format_data_for_boxplot(transformed_df, c('NF2-MUT', 'MET-MUT'), "gene_id", list("FH"))
+box_df <- boxplot$format_data_for_boxplot(transformed_df, c('ARL11-MUT', 'MUC4-MUT'), "gene_id", list("P53"))
 
 # Now lets actually display it
-boxplot <- sciviso$Violinplot(box_df, "Conditions", "Values", "NF2 MUT and MET MUT", add_dots=TRUE)
+boxplot <- sciviso$Violinplot(box_df, "Conditions", "Values", "ARL11 MUT and MUC4 MUT for P53", add_dots=TRUE)
 boxplot$plot()
 mpl$pyplot$show()
 
@@ -320,7 +300,7 @@ values_columns_filtered_df <- api$get_values_from_df(df, 'gene_id', male_KIRC, N
 transformed_df <-log2_df_values(values_columns_filtered_df[[2]], transformed_df, values_columns_filtered_df[[3]], 'gene_id', 'KIRC-TUMOUR_', 1)
 
 boxplot <- sciviso$Boxplot(transformed_df, NULL, NULL)
-box_df <- boxplot$format_data_for_boxplot(transformed_df, list('KIRP-TUMOUR', 'KIRP-NORMAL', 'KIRC-NORMAL', 'KIRC-TUMOUR'), "gene_id", list("FH"))
+box_df <- boxplot$format_data_for_boxplot(transformed_df, list('KIRP-TUMOUR', 'KIRP-NORMAL', 'KIRC-NORMAL', 'KIRC-TUMOUR'), "gene_id", list("ANK3"))
 boxplot = sciviso$Violinplot(box_df, "Conditions", "Values", "Looking at KIRP v KIRC tumour and normal FH", add_dots=TRUE)
 boxplot$plot()
 mpl$pyplot$show()
@@ -334,7 +314,7 @@ Here we may have a hypothesis related to how a specific gene changes across mult
 
 filter_col <- 'ssm.consequence.0.transcript.gene.symbol'
 column_returned <- "case_id"
-genes_of_interest <-c('FH', 'MET', 'ATF4', 'CHAC1', 'PSAT1', 'NRF2', 'SLC7A11')
+genes_of_interest <- c('SOX2', 'P53', 'MUC4', 'ARL11')
 # Now we have our genes we want these to be our x axis
 female_early_dict <- list('gender' = list('female'), 'tumor_stage_num' = c(1, 2), 'project_id' = list('TCGA-KIRP'))
 female_early <- api$get_cases_with_meta(female_early_dict)
@@ -373,7 +353,7 @@ for (i in seq_along(genes_of_interest)) {
 }
 ```
 
-
+x
 ## Example 4: Running differential expression on two conditions
 Since we have so many ways to chop and look at our data, we may be interested in running differential expression analysis on two of our metadata, for example, we can use the dataframe we set up before to find what is the
 difference between our early and late stage females in the KIRP dataset?
