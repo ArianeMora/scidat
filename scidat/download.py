@@ -39,7 +39,7 @@ class Download:
         self.split_manifest_dir = split_manifest_dir
         self.gdc_client = gdc_client
         self.manifest_file = manifest_file
-        self.max_cnt = 6000
+        self.max_cnt = max_cnt
         self.downloaded_files = []
         self.file_type = None
         self.check_args()
@@ -223,7 +223,7 @@ class Download:
         for p in processes:
             p.wait()
 
-    def copy_downloads_to_new_dir(self, processed_dir):
+    def copy_downloads_to_new_dir(self, processed_dir, file_type='all'):
         processed_dir = self.add_windows_slash(processed_dir)
         files = os.listdir(self.download_dir)
         count = 0
@@ -239,11 +239,11 @@ class Download:
                             file_idx += 1
                             count += 1
                             dir_str = self.u.check_dir_format(self.download_dir + f)
-                            if 'gz' in df:
+                            if 'gz' in df and (file_type == 'all' or file_type == 'counts'):
                                 with gzip.open(dir_str + df, 'rb') as f_in:
                                     with open(processed_dir + df[:-3] + '.tsv', 'wb') as f_out:
                                         shutil.copyfileobj(f_in, f_out)
-                            else:
+                            elif file_type == 'all' or file_type == 'm450':
                                 # If it is a methylation file it isn't zipped so we just copy it across
                                 if self.file_type == 'windows' or 'C:' in dir_str:
                                     print('xcopy ' + dir_str + df + ' ' + processed_dir + df)

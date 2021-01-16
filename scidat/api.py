@@ -158,43 +158,35 @@ class API:
         cpg_files = []
 
         for f in files:
-            if 'HumanMethylation450' in f and 'min' not in f and '.DS' not in f:
+            if 'HumanMethylation450' in f and 'minif_' not in f and '.DS' not in f:
                 cpg_files.append(f)
 
         for f in cpg_files:
             print(f)
-            try:
-                df_tmp = pd.read_csv(processed_dir + f, sep='\t')
-                i = 0
-                gene_symbols = []
-                for g in df_tmp['Gene_Symbol'].values:
-                    gene_symbols.append(g.split(';')[0])
+            df_tmp = pd.read_csv(processed_dir + f, sep='\t')
+            # Put Nones in instead of .'s as used by TCGA
+            gene_symbols = []
+            for g in df_tmp['Gene_Symbol'].values:
+                genes = g.split(';')
+                gene = genes[0] if genes[0] != '.' else None
+                gene_symbols.append(gene)
+            df_tmp = df_tmp.replace({'.': None})
+            meth_df = pd.DataFrame()
+            meth_df['Composite Element REF'] = df_tmp['Composite Element REF'].values
+            chr_values = df_tmp["Chromosome"].values
+            start_values = df_tmp["Start"].values
+            cpg_ids = []
+            for i, c in enumerate(chr_values):
+                cpg_ids.append(f'{c}:{start_values[i]}')
+            meth_df['cpg_id'] = cpg_ids
+            meth_df['external_gene_name'] = gene_symbols
+            meth_df['beta_value'] = df_tmp['Beta_value'].values
+            meth_df['feature_type'] = df_tmp['Feature_Type'].values
+            meth_df.to_csv(os.path.join(cpg_min_dir, f'minif_{f}'), index=False)
 
-                meth_df = pd.DataFrame()
-                meth_df['Composite Element REF'] = df_tmp['Composite Element REF'].values
-                meth_df['external_gene_name'] = gene_symbols
-                meth_df['beta_value'] = df_tmp['Beta_value'].values
-                meth_df.to_csv(cpg_min_dir + f, index=False)
-            except Exception as e:
-                self.u.err_p([f, e])
+    def build_meth_df(self, cpg_min_dir: str) -> pd.DataFrame:
+        """ Here we build the CpG df from all the inputs,  """
 
-    def build_meth_df(self, cpg_min_dir: str, df=None, drop_empty_rows=False, join_id='external_gene_name',
-                      meth_id='external_gene_name') -> None:
-        """
-        Here we build a dataframe based on the methylation data, we can add it to an existing dataframe
-        and just join on the columns or create a new dataframe. Here we also choose whether to keep empty rows or only
-        keep genes that have full data.
-
-        Parameters
-        ----------
-        cpg_min_dir
-        df
-        drop_empty_rows
-        join_id: Tells us which column we want to join on, this must be a column in DF if we're joining to that
-        Returns
-        -------
-
-        """
         if self.annotate.annotated_file_dict is None:
             msg = self.u.msg.msg_data_gen("build_meth_df", "annotate.annotated_file_dict", ["build_annotation"])
             self.u.err_p([msg])
@@ -203,56 +195,39 @@ class API:
         cpg_files = []
 
         for f in files:
-            if 'HumanMethylation450' in f and 'min' not in f and '.DS' not in f:
+            if 'HumanMethylation450' in f and 'minif' in f and '.DS' not in f:
                 cpg_files.append(f)
 
-        start_idx = 0
-        files_parsed = []
-        cpg_to_genes = {}
-        cpg_to_beta = {}
-        for f in cpg_files[start_idx:]:
-            try:
-                df_tmp = pd.read_csv(cpg_min_dir + f)
-                name = self.annotate.annotated_file_dict[f]['label']
-                df_tmp.columns = ['Composite Element REF', meth_id, name]
-                gene_names = df_tmp[meth_id].values
-                beta_values = df_tmp[name].values
-                # Build dict from each one
-                for i, cpg in enumerate(df_tmp['Composite Element REF'].values):
-                    # Don't keep cpgs that don't have gene names
-                    if gene_names[i] != '.':
-                        if cpg_to_genes.get(cpg) == None:
-                            cpg_to_genes[cpg] = gene_names[i]
-                            cpg_to_beta[cpg] = {}
-                        if cpg_to_genes.get(cpg) != gene_names[i]:
-                            self.u.warn_p(['WARN mismatch between gene names for same CpG: ', cpg, gene_names[i],
-                                           cpg_to_genes.get(cpg)])
-                        cpg_to_beta[cpg][name] = beta_values[i]
-                files_parsed.append(name)
-            except Exception as e:
-                self.u.warn_p(['WARNING: minify meth files, unable to parse: ', f,
+        file_cpg_to_beta = {}
+        cpg_df = {}
+        for f in cpg_files:
+            df_tmp = pd.read_csv(cpg_min_dir + f)
+            f_true = f[6:]
+            name = self.annotate.annotated_file_dict.get(f_true)
+            if name is None:
+                self.u.warn_p(['WARNING: build_meth_df, unable to parse: ', f,
                                '\nIs this file missisng from your sample or clinical file?'])
-        df = pd.DataFrame()
-        # Now we want to build the df with each of our columns for the beta values and the gene names should be
-        # always the same
-        f_betas = {}
-        gene_names = []
-        cpgs = []
-        for cpg, beta_vals in cpg_to_beta.items():
-            for f in files_parsed:
-                if not f_betas.get(f):
-                    f_betas[f] = []
-                f_betas[f].append(beta_vals.get(f))
-            gene_names.append(cpg_to_genes.get(cpg))
-            cpgs.append(cpg)
-        df['cpg-id'] = cpgs
-        df[join_id] = gene_names
-        for f, vals in f_betas.items():
-            df[f] = vals
+            else:
+                name = name['label']
+                file_cpg_to_beta[name] = {}
+                cpg_ids = df_tmp["cpg_id"].values
+                beta_values = df_tmp["beta_value"].values
+                for i, cpg_id in enumerate(cpg_ids):
+                    cpg_df[cpg_id] = True
+                    file_cpg_to_beta[name][cpg_id] = beta_values[i]
 
-        if drop_empty_rows:
-            df = df.dropna()
+        # Now we want to build a DF where each file has the list of CpGs
+        df = pd.DataFrame()
+        all_cpgs = [c for c in cpg_df]
+        df['cpg_id'] = all_cpgs
+        for f in file_cpg_to_beta:
+            cpg_values = []
+            for cpg in cpg_df:
+                beta_val = file_cpg_to_beta[f].get(cpg) if file_cpg_to_beta[f].get(cpg) is not None else 0.0
+                cpg_values.append(beta_val)
+            df[f] = cpg_values
         self.meth_df = df
+        return df
 
     def merge_rna_meth_values(self, meth_df: pd.DataFrame, rna_df: pd.DataFrame, index_col='external_gene_name',
                               merge_col='external_gene_name') -> pd.DataFrame:

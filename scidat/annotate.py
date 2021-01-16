@@ -40,11 +40,10 @@ class Annotate:
         self.sample_file = sample_file
         self.manifest_file = manifest_file
         self.file_types = file_types if file_types is not None else ['450', 'counts']
-        if clin_cols is None:
-            clin_cols = ['project_id', 'age_at_index', 'gender', 'race', 'vital_status',
+        self.clin_cols = ['project_id', 'age_at_index', 'gender', 'race', 'vital_status',
                          'tumor_stage', 'days_to_death']
-        self.annotation_cols = ['case_files', 'tumor_stage_num', 'race', 'gender', 'project_id', 'days_to_death']
-        self.clin_cols = clin_cols
+        self.annotation_cols = ['case_files', 'tumor_stage_num', 'race', 'gender', 'project_id', 'days_to_death',
+                                'age_at_index']
         self.case_submitter_id = 'submitter_id'
         self.clin_df = None
         self.mutation_df = None
@@ -179,7 +178,9 @@ class Annotate:
         # Lastly we want to convert our tumor stage into a numeric value (i.e. 1-4 instead of a string)
         stages = []
         for stage in self.clin_df['tumor_stage'].values:
-            if 'iv' in stage:
+            if "--" in stage:
+                stages.append(None)
+            elif 'iv' in stage:
                 stages.append(4)
             elif 'iii' in stage:
                 stages.append(3)
@@ -217,9 +218,11 @@ class Annotate:
                 print("FILETYPE NOT FOUND", filename)
             # ToDo: Update this --> won't work with user specified annotation columns
             # ToDo: WARN: Must have the case_id as the last element
-            label = f'{meta["project_id"]}{self.sep}{meta["sample_type"]}{self.sep}{meta["gender"]}{self.sep}' \
-                    f'{meta["race"]}{self.sep}{meta["tumor_stage_num"]}{self.sep}{file_type}{self.sep}' \
-                    f'{meta["days_to_death"]}{self.sep}{meta["case_id"]}{self.sep}{meta["file_id"]}'
+            days_to_death = meta.get("days_to_death") if "--" not in str(meta.get("days_to_death")) else None
+            age_at_index = meta.get("age_at_index") if "--" not in str(meta.get("age_at_index")) else None
+            label = f'{meta.get("project_id")}{self.sep}{meta.get("sample_type")}{self.sep}{meta.get("gender")}{self.sep}' \
+                    f'{meta.get("race")}{self.sep}{meta.get("tumor_stage_num")}{self.sep}{file_type}{self.sep}' \
+                    f'{days_to_death}{self.sep}{age_at_index}{self.sep}{meta.get("case_id")}{self.sep}{meta.get("file_id")}'
 
             # Remove any spaces from the label
             self.annotated_file_dict[filename]['label'] = label.replace(' ', '')

@@ -29,7 +29,7 @@ class TestAPI(unittest.TestCase):
 
     def setUp(self):
         # Flag to set data to be local so we don't have to download them repeatedly. ToDo: Remove when publishing.
-        self.local = False
+        self.local = True
         THIS_DIR = os.path.dirname(os.path.abspath(__file__))
         if self.local:
 
@@ -54,7 +54,18 @@ class TestAPI(unittest.TestCase):
                             max_cnt=1, requires_lst=['counts', 'm450'])
 
     def tearDown(self):
-        shutil.rmtree(self.tmp_dir)
+        print(None)
+        #shutil.rmtree(self.tmp_dir)
+
+    def test_download_meth(self):
+        #self.api.download_data_from_manifest()
+        self.api.build_annotation()
+        self.api.minify_meth_files(self.data_dir, self.data_dir)
+        self.api.build_meth_df(self.data_dir)
+        # Delete the unminified DNA methylation files
+        meth_df = self.api.get_meth_df()
+        meth_df.to_csv(os.path.join('', "methdf.csv"))
+
 
     def test_download(self):
 
@@ -115,8 +126,8 @@ class TestAPI(unittest.TestCase):
         # Lets now build it and run our tests
         self.api.build_rna_df()
         df = self.api.get_rna_df()
-        self.assertEqual("TCGA-KIRC_PrimaryTumor_male_asian_3_htseq.counts_--_TCGA-KIRC_TCGA-A3-3308_001ae925-102c-4818-8eb0-c8d2e5726e7c", df.columns[1])
-        self.assertEqual(df['TCGA-KIRC_PrimaryTumor_male_asian_3_htseq.counts_--_TCGA-KIRC_TCGA-A3-3308_001ae925-102c-4818-8eb0-c8d2e5726e7c'].values[3], 753)
+        self.assertEqual("TCGA-KIRC_PrimaryTumor_male_asian_3_htseq.counts_None_22_TCGA-KIRC_TCGA-A3-3308_001ae925-102c-4818-8eb0-c8d2e5726e7c", df.columns[1])
+        self.assertEqual(df['TCGA-KIRC_PrimaryTumor_male_asian_3_htseq.counts_None_22_TCGA-KIRC_TCGA-A3-3308_001ae925-102c-4818-8eb0-c8d2e5726e7c'].values[3], 753)
 
     def test_minify_meth_files(self):
         self.api.minify_meth_files(self.data_dir, self.tmp_dir)
