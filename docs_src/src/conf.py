@@ -95,3 +95,6 @@ html_baseurl = 'https://arianemora.github.io/scidat/'
 sitemap_url_scheme = "{link}"
 
 nbsphinx_allow_errors = True
+
+# Favicon
+html_favicon = '_static/logo.png'
