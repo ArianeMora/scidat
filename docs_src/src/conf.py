@@ -88,7 +88,7 @@ html_js_files = [
     'custom.js'
 ]
 
-html_logo = '_static/logo.svg'
+html_logo = '_static/logo.png'
 
 # Sitemap settings
 html_baseurl = 'https://arianemora.github.io/scidat/'

@@ -66,7 +66,6 @@ class TestAPI(unittest.TestCase):
         meth_df = self.api.get_meth_df()
         meth_df.to_csv(os.path.join('', "methdf.csv"))
 
-
     def test_download(self):
 
         self.api.download_data_from_manifest()

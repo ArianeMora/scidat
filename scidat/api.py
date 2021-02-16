@@ -203,6 +203,7 @@ class API:
         for f in cpg_files:
             df_tmp = pd.read_csv(cpg_min_dir + f)
             f_true = f[6:]
+            print(f_true)
             name = self.annotate.annotated_file_dict.get(f_true)
             if name is None:
                 self.u.warn_p(['WARNING: build_meth_df, unable to parse: ', f,
@@ -212,17 +213,19 @@ class API:
                 file_cpg_to_beta[name] = {}
                 cpg_ids = df_tmp["cpg_id"].values
                 beta_values = df_tmp["beta_value"].values
+                composite_ref = df_tmp["Composite Element REF"].values
                 for i, cpg_id in enumerate(cpg_ids):
-                    cpg_df[cpg_id] = True
+                    cpg_df[cpg_id] = composite_ref[i]
                     file_cpg_to_beta[name][cpg_id] = beta_values[i]
 
         # Now we want to build a DF where each file has the list of CpGs
         df = pd.DataFrame()
         all_cpgs = [c for c in cpg_df]
+        df['comp_elem_ref'] = [cpg_df.get(c) for c in cpg_df]
         df['cpg_id'] = all_cpgs
         for f in file_cpg_to_beta:
             cpg_values = []
-            for cpg in cpg_df:
+            for cpg, comp_ref in cpg_df.items():
                 beta_val = file_cpg_to_beta[f].get(cpg) if file_cpg_to_beta[f].get(cpg) is not None else 0.0
                 cpg_values.append(beta_val)
             df[f] = cpg_values
