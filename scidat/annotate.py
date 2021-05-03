@@ -210,7 +210,7 @@ class Annotate:
         # Now lets build our new column dictionary
         for filename, meta in self.annotated_file_dict.items():
             file_type = None
-            if 'htseq.counts.gz' in filename:
+            if 'counts' in filename:
                 file_type = 'htseq.counts'
             elif 'HumanMethylation450' in filename:
                 file_type = 'HumanMethylation450'
