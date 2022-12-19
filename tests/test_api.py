@@ -147,11 +147,11 @@ class TestAPI(unittest.TestCase):
         self.api.minify_meth_files(self.data_dir, self.tmp_dir)
         # Check if we haven't annotated our files we have an exception
         with self.assertRaises(APIException):
-            self.api.build_meth_df(self.tmp_dir, join_id='id')
+            self.api.build_meth_df(self.tmp_dir)
 
         # Build annotation and then build the df again
         self.api.build_annotation()
-        self.api.build_meth_df(self.tmp_dir, join_id='id')
+        self.api.build_meth_df(self.tmp_dir)
         meth_df = self.api.get_meth_df()
 
         # build rnaseq df first then join the meth df
@@ -162,7 +162,7 @@ class TestAPI(unittest.TestCase):
         df = self.api.add_gene_metadata_to_df(df)
         # Now we want to add our methylation data to our dataframe, here we're being very strict and dropping any null
         # rows
-        self.api.build_meth_df(self.tmp_dir, df, drop_empty_rows=False)
+        self.api.build_meth_df(self.tmp_dir)
         meth_df = self.api.get_meth_df()
 
         # Let's now run some checks

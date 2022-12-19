@@ -111,6 +111,45 @@ class API:
     def build_annotation(self) -> None:
         self.annotate.build_annotation()
 
+    def build_star_rna_df(self, rna_seq_dir=None) -> np.array:
+        """
+
+        Parameters
+        ----------
+        case_ids
+        rna_seq_dir
+
+        Returns
+        -------
+
+        """
+        # first check if they have performed the annotation step
+        if self.annotate.annotated_file_dict is None:
+            msg = self.u.msg.msg_data_gen("build_rna_df", "annotate.annotated_file_dict", ["build_annotation"])
+            self.u.err_p([msg])
+            raise APIException(msg)
+        rna_seq_dir = rna_seq_dir if rna_seq_dir is not None else self.download_dir
+        files = os.listdir(rna_seq_dir)
+        count_files = []
+        for f in files:
+            if 'counts' in f and '.DS' not in f and '.tsv' in f:
+                count_files.append(f)
+
+        first_file = count_files[0][:-3] + 'gz'
+        df = pd.read_csv(rna_seq_dir + count_files[0], sep='\t', header=None)
+        df.columns = ['id', self.annotate.annotated_file_dict[first_file]['label']]
+
+        # Add all others.
+        for f in count_files[1:]:
+            try:
+                df_tmp = pd.read_csv(rna_seq_dir + f, sep='\t', header=None)
+                name = self.annotate.annotated_file_dict[f[:-3] + 'gz']['label']
+                df_tmp.columns = ['id', name]
+                df = df.join(df_tmp.set_index('id'), on='id')
+            except:
+                self.u.warn_p(["Unable to process: ", f])
+        self.rna_df = df
+
     def build_rna_df(self, rna_seq_dir=None) -> np.array:
         """
 

@@ -20,6 +20,7 @@ from collections import defaultdict
 import os
 import pandas as pd
 from typing import Tuple
+import numpy as np
 
 from sciutil import SciException, SciUtil
 
@@ -160,7 +161,10 @@ class Annotate:
             tumor = 0
             normal = 0
             c_files = []
-            case = project_ids[i] + '_' + c
+            if not isinstance(c, np.ndarray):
+                case = project_ids[i] + '_' + c
+            else:
+                case = project_ids[i] + '_' + c[0]
             for f in self.case_to_file[case]:
                 if self.annotated_file_dict[f]['sample_type'] == 'Solid Tissue Normal':
                     normal += 1

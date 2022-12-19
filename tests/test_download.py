@@ -98,7 +98,7 @@ class TestDownload(unittest.TestCase):
 
     def test_download_data_using_api(self):
         # Here we want to download the mutation files
-        case_ids = ['TCGA-A3-3308', 'TCGA-KN-8422', 'TCGA-CZ-5989-11A', 'TCGA-A4-8312-01A']
+        case_ids = ['C3N-00310', 'TCGA-KN-8422', 'TCGA-CZ-5989-11A', 'TCGA-A4-8312-01A']
         self.download.download_data_using_api(case_ids, 'mutation')
 
         labels = []
