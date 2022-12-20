@@ -15,6 +15,7 @@
 #                                                                             #
 ###############################################################################
 
+
 # https://docs.gdc.cancer.gov/API/Users_Guide/Data_Analysis/
 from collections import defaultdict
 import os
@@ -41,8 +42,8 @@ class Annotate:
         self.sample_file = sample_file
         self.manifest_file = manifest_file
         self.file_types = file_types if file_types is not None else ['450', 'counts']
-        self.clin_cols = ['project_id', 'age_at_index', 'gender', 'race', 'vital_status',
-                         'tumor_stage', 'days_to_death']
+        self.clin_cols = ['project_id', 'age_at_index', 'gender', 'race', 'vital_status', 'tumor_stage',
+                          'days_to_death']
         self.annotation_cols = ['case_files', 'tumor_stage_num', 'race', 'gender', 'project_id', 'days_to_death',
                                 'age_at_index']
         self.case_submitter_id = 'submitter_id'
@@ -77,7 +78,8 @@ class Annotate:
         self.manifest_file = self.add_windows_slash(self.manifest_file)
 
         if not os.path.isdir(self.output_dir):
-            raise AnnotateException(f'ARGPARSE ERR: output directory in annotate was not a directory: {self.output_dir}')
+            raise AnnotateException(
+                f'ARGPARSE ERR: output directory in annotate was not a directory: {self.output_dir}')
 
         if not os.path.isfile(self.manifest_file):
             raise AnnotateException(f'ARGPARSE ERR: manifest file does not exist: {self.manifest_file}')
@@ -215,9 +217,11 @@ class Annotate:
         for filename, meta in self.annotated_file_dict.items():
             file_type = None
             if 'counts' in filename:
-                file_type = 'htseq.counts'
-            elif 'HumanMethylation450' in filename:
-                file_type = 'HumanMethylation450'
+                file_type = 'RNA'
+            elif 'methylation' in filename.lower():
+                file_type = 'methylation'
+            elif 'RPPA' in filename:
+                file_type = 'protein'
             else:
                 print("FILETYPE NOT FOUND", filename)
             # ToDo: Update this --> won't work with user specified annotation columns
@@ -249,12 +253,12 @@ class Annotate:
 
             if case_ids:
                 self.u.err_p(["Error in build_mutation_df!\nYou had no files in: ", mutation_dir, "\nwith the prefix: "
-                             , mutation_prefix, "\nAnd case ids in: ", ','.join(case_ids),
+                                 , mutation_prefix, "\nAnd case ids in: ", ','.join(case_ids),
                               "\nPlease check this directory exists and you have downloaded the mutation data."])
             else:
                 self.u.err_p(["Error in build_mutation_df!\nYou had no files in: ", mutation_dir, "\nwith the prefix: "
-                              , mutation_prefix, "\nPlease check this directory exists and you have downloaded "
-                              "the mutation data."])
+                                 , mutation_prefix, "\nPlease check this directory exists and you have downloaded "
+                                                    "the mutation data."])
             raise AnnotateException("Build mutation exception")
         # Now we want to go through each of the files and add it to a dataframe
         dfs = []

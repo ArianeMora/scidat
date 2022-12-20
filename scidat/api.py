@@ -98,7 +98,8 @@ class API:
             case_ids = case_ids if case_ids is not None else list(self.annotate.get_cases())
             self.u.warn_p(
                 ["Warning: you didn't provide any case ids. Are you sure you want to download all the cases?\n"
-                 "Total number: ", len(case_ids), "\nTerminate the program now if you wish to stop. Waiting 2 seconds."])
+                 "Total number: ", len(case_ids),
+                 "\nTerminate the program now if you wish to stop. Waiting 2 seconds."])
             time.sleep(2)
             self.u.warn_p(["Continuing..."])
 
@@ -135,20 +136,48 @@ class API:
             if 'counts' in f and '.DS' not in f and '.tsv' in f:
                 count_files.append(f)
 
-        first_file = count_files[0][:-3] + 'gz'
-        df = pd.read_csv(rna_seq_dir + count_files[0], sep='\t', header=None)
-        df.columns = ['id', self.annotate.annotated_file_dict[first_file]['label']]
+        first_file = count_files[0]
+        df = pd.read_csv(rna_seq_dir + count_files[0], sep='\t', comment='#')[['gene_id', 'gene_name', 'unstranded']]
+        df.columns = ['gene_id', 'gene_name', self.annotate.annotated_file_dict[first_file]['label']]
 
         # Add all others.
         for f in count_files[1:]:
             try:
-                df_tmp = pd.read_csv(rna_seq_dir + f, sep='\t', header=None)
-                name = self.annotate.annotated_file_dict[f[:-3] + 'gz']['label']
-                df_tmp.columns = ['id', name]
-                df = df.join(df_tmp.set_index('id'), on='id')
+                df_tmp = pd.read_csv(rna_seq_dir + f, sep='\t', comment='#')[['gene_id', 'unstranded']]
+                name = self.annotate.annotated_file_dict[f]['label']
+                df_tmp.columns = ['gene_id', name]
+                df = df.join(df_tmp.set_index('gene_id'), on='gene_id')
             except:
                 self.u.warn_p(["Unable to process: ", f])
         self.rna_df = df
+
+    def build_rppa_df(self, data_dir) -> pd.DataFrame:
+        if self.annotate.annotated_file_dict is None:
+            msg = self.u.msg.msg_data_gen("build_rppa_df", "annotate.annotated_file_dict", ["build_annotation"])
+            self.u.err_p([msg])
+            raise APIException(msg)
+        files = os.listdir(data_dir)
+        rppa_files = []
+
+        for f in files:
+            if 'RPPA' in f and '.DS' not in f:
+                rppa_files.append(f)
+
+        # Now we want to build a DF where each file has the list of CpGs
+        first_file = rppa_files[0]
+        df = pd.read_csv(data_dir + rppa_files[0], sep='\t')[['AGID', 'peptide_target', 'protein_expression']]
+        df.columns = ['id', 'peptide_target', self.annotate.annotated_file_dict[first_file]['label']]
+
+        # Add all others.
+        for f in rppa_files[1:]:
+            try:
+                df_tmp = pd.read_csv(data_dir + f, sep='\t')[['AGID', 'protein_expression']]
+                name = self.annotate.annotated_file_dict[f]['label']
+                df_tmp.columns = ['id', name]
+                df = df.join(df_tmp.set_index('id'), on='id')
+            except:
+                u.warn_p(["Unable to process: ", f])
+        return df
 
     def build_rna_df(self, rna_seq_dir=None) -> np.array:
         """
@@ -188,6 +217,38 @@ class API:
             except:
                 self.u.warn_p(["Unable to process: ", f])
         self.rna_df = df
+
+    def build_sesame_meth_df(self, cpg_min_dir: str) -> pd.DataFrame:
+
+        """ Here we build the CpG df from all the inputs,  """
+
+        if self.annotate.annotated_file_dict is None:
+            msg = self.u.msg.msg_data_gen("build_meth_df", "annotate.annotated_file_dict", ["build_annotation"])
+            self.u.err_p([msg])
+            raise APIException(msg)
+        files = os.listdir(cpg_min_dir)
+        cpg_files = []
+
+        for f in files:
+            if 'sesame' in f and '.DS' not in f and 'swp' not in f:
+                cpg_files.append(f)
+
+        # Now we want to build a DF where each file has the list of CpGs
+        first_file = cpg_files[0]
+        df = pd.read_csv(cpg_min_dir + cpg_files[0], sep='\t', header=None)
+        df.columns = ['id', self.annotate.annotated_file_dict[first_file]['label']]
+
+        # Add all others.
+        for f in cpg_files[1:]:
+            try:
+                df_tmp = pd.read_csv(cpg_min_dir + f, sep='\t', header=None)
+                name = self.annotate.annotated_file_dict[f]['label']
+                df_tmp.columns = ['id', name]
+                df = df.join(df_tmp.set_index('id'), on='id')
+            except:
+                u.warn_p(["Unable to process: ", f])
+        self.meth_df = df
+        return df
 
     def minify_meth_files(self, processed_dir=None, cpg_min_dir=None, beta_cutoff=0.5):
         cpg_min_dir = cpg_min_dir if cpg_min_dir is not None else self.download_dir
@@ -301,7 +362,7 @@ class API:
         return self.get_mutation_values_on_filter(column, case_ids, 'case_id')
 
     def get_mutations_for_specific_gene(self, column: str, filter_values: list, filter_column: str, gene: str,
-                                        id_type='symbol')\
+                                        id_type='symbol') \
             -> list:
         gene_column = 'ssm.consequence.0.transcript.gene.gene_id'
         if id_type == 'symbol':
@@ -353,7 +414,7 @@ class API:
         return columns
 
     def filter_columns_on_gene_value(self, df: pd.DataFrame, gene_id: str, id_column: str,
-                                   cutoff_value: float, method: str, ensembl_id=True) -> list:
+                                     cutoff_value: float, method: str, ensembl_id=True) -> list:
         """
         Returns the cases that have the gene value
         Parameters
@@ -528,7 +589,7 @@ class API:
         for c in df.columns:
             for case in case_ids:
                 # ToDo: WARN this won't be stable if we let users choose their own format for the filenames
-                if case in c: # == c.split(self.sep)[-1]:
+                if case in c:  # == c.split(self.sep)[-1]:
                     columns.append(c)
                     break
         # Lets check if we also have a column requirement
@@ -624,7 +685,8 @@ class API:
         """
         if self.rna_meth_df is None:
             self.u.err_p([self.u.msg.msg_data_gen("get_merged_rna_meth_df",
-                "rna_meth_df", ["minify_meth_files", "build_meth_df", "build_rna_df", "merge_rna_meth_df"])])
+                                                  "rna_meth_df", ["minify_meth_files", "build_meth_df", "build_rna_df",
+                                                                  "merge_rna_meth_df"])])
             return
 
         if case_ids is not None:
@@ -632,7 +694,7 @@ class API:
 
         return self.rna_meth_df
 
-    def add_gene_metadata_to_df(self, df:pd.DataFrame, left_id='id', right_id='ensembl_gene_id'):
+    def add_gene_metadata_to_df(self, df: pd.DataFrame, left_id='id', right_id='ensembl_gene_id'):
         """ Adds gene name information to the RNAseq dataframe """
         # We need to remove the '.' from the ensembl ids
         ensembl_ids = []
